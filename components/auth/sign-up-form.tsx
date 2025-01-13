@@ -65,11 +65,13 @@ export function SignUpForm() {
 
             router.push("/auth/sign-in")
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Une erreur est survenue lors de l'inscription",
-            })
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Erreur",
+                    description: "Une erreur est survenue lors de l'inscription",
+                })
+            }
         }
     }
 

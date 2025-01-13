@@ -16,6 +16,7 @@ import {
 import { categories } from "./categories";
 import { Search, ArrowRight, History, Sparkles, TrendingUp } from "lucide-react";
 
+
 interface SearchResult {
     id: string;
     type: "product" | "category" | "recent" | "trending";
@@ -23,7 +24,7 @@ interface SearchResult {
     description?: string;
     image?: string;
     href: string;
-    icon?: any;
+    icon?: React.ComponentType<{ className: string }>;
 }
 
 interface SearchCommandProps {
@@ -112,8 +113,7 @@ export function SearchCommand({ open: controlledOpen, onOpenChange, onSelect }: 
         const categoryResults = categories.flatMap(category =>
             category.items
                 .filter(item =>
-                    item.title.toLowerCase().includes(value.toLowerCase()) ||
-                    item.description?.toLowerCase().includes(value.toLowerCase())
+                    item.title.toLowerCase().includes(value.toLowerCase())
                 )
                 .map(item => ({
                     id: `category-${item.title}`,
@@ -125,7 +125,7 @@ export function SearchCommand({ open: controlledOpen, onOpenChange, onSelect }: 
                 }))
         );
 
-        // Mock product search - replace with API call
+        // Mock product search with explicit type annotation
         const productResults: SearchResult[] = [
             {
                 id: "1",
@@ -145,7 +145,7 @@ export function SearchCommand({ open: controlledOpen, onOpenChange, onSelect }: 
             },
         ].filter(product =>
             product.title.toLowerCase().includes(value.toLowerCase())
-        );
+        ) as SearchResult[];
 
         setResults([...categoryResults, ...productResults]);
     };

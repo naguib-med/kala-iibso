@@ -56,11 +56,13 @@ export function SignInForm() {
             router.push("/")
             router.refresh()
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Email ou mot de passe incorrect",
-            })
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Erreur",
+                    description: "Email ou mot de passe incorrect",
+                })
+            }
         }
     }
 

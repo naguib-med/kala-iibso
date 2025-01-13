@@ -27,11 +27,14 @@ export function UserButton({ email }: { email: string | null | undefined }) {
             })
             router.refresh()
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Une erreur est survenue lors de la déconnexion",
-            })
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Erreur",
+                    description: error.message,
+                })
+            }
+
         }
     }
 

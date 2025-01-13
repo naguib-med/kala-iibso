@@ -37,11 +37,13 @@ export function CartSheet() {
             await new Promise((resolve) => setTimeout(resolve, 1000));
             router.push("/checkout");
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to proceed to checkout. Please try again.",
-            });
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: `"Failed to proceed to checkout. Please try again."`,
+                });
+            }
         } finally {
             setIsCheckingOut(false);
         }

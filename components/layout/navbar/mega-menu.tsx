@@ -14,12 +14,28 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { categories } from "./categories";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Star } from "lucide-react";
+import { LucideIcon } from "lucide-react";
+
+// First, let's define our interfaces
+interface SubCategory {
+    title: string;
+    href: string;
+    icon: LucideIcon;
+    description: string;
+}
+
+interface MainCategory {
+    title: string;
+    icon: LucideIcon;
+    items: SubCategory[];
+}
 
 export function MegaMenu() {
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
     return (
         <NavigationMenu>
+            {/* Rest of the code remains the same until the categories mapping */}
             <NavigationMenuList>
                 <NavigationMenuItem>
                     <NavigationMenuTrigger
@@ -35,7 +51,7 @@ export function MegaMenu() {
                             {/* Categories List */}
                             <div className="col-span-2 border-r">
                                 <ScrollArea className="h-[600px]">
-                                    {categories.map((category) => (
+                                    {(categories as MainCategory[]).map((category) => (
                                         <Button
                                             key={category.title}
                                             variant="ghost"
@@ -66,7 +82,7 @@ export function MegaMenu() {
                                                     {activeCategory}
                                                 </h4>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {categories.find((c) => c.title === activeCategory)?.items.length} subcategories
+                                                    {(categories as MainCategory[]).find((c) => c.title === activeCategory)?.items.length} subcategories
                                                 </p>
                                             </div>
                                             <Button variant="link" size="sm" asChild>
@@ -76,7 +92,7 @@ export function MegaMenu() {
                                             </Button>
                                         </div>
                                         <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-                                            {categories
+                                            {(categories as MainCategory[])
                                                 .find((c) => c.title === activeCategory)
                                                 ?.items.map((item) => (
                                                     <Link
@@ -111,7 +127,7 @@ export function MegaMenu() {
                                             </p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            {categories.slice(0, 6).map((category) => (
+                                            {(categories as MainCategory[]).slice(0, 6).map((category) => (
                                                 <Link
                                                     key={category.title}
                                                     href={`/marketplace/category/${category.title.toLowerCase()}`}

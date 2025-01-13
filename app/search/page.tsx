@@ -3,13 +3,14 @@ import { SearchFilters } from "@/components/search/filters"
 import { SearchResults } from "@/components/search/results"
 import { SearchSkeleton } from "@/components/search/skeleton"
 
-interface SearchPageProps {
-    params: { [key: string]: string | string[] | undefined }
-    searchParams: { [key: string]: string | string[] | undefined }
+type SearchPageProps = {
+    searchParams?: {
+        [key: string]: string | string[] | undefined
+    }
 }
 
-export default function SearchPage({
-    searchParams,
+export default async function SearchPage({
+    searchParams = {},
 }: SearchPageProps) {
     return (
         <div className="container py-6 md:py-8">

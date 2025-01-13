@@ -42,18 +42,27 @@ const mockResults = [
     }
 ]
 
-export function SearchResults({
-    searchParams
-}: {
-    searchParams: { [key: string]: string | string[] | undefined }
-}) {
+type SearchResultsProps = {
+    searchParams: {
+        [key: string]: string | string[] | undefined
+    }
+}
+
+
+export function SearchResults({ searchParams }: SearchResultsProps) {
     // Filter results based on search params
     const filteredResults = mockResults.filter(item => {
-        if (searchParams.category && item.category !== searchParams.category) return false
-        if (searchParams.location && item.location.toLowerCase() !== searchParams.location) return false
-        if (searchParams.condition && item.condition.toLowerCase() !== searchParams.condition) return false
-        if (searchParams.minPrice && item.price < parseInt(searchParams.minPrice as string)) return false
-        if (searchParams.maxPrice && item.price > parseInt(searchParams.maxPrice as string)) return false
+        const minPrice = typeof searchParams.minPrice === 'string' ? parseInt(searchParams.minPrice) : undefined
+        const maxPrice = typeof searchParams.maxPrice === 'string' ? parseInt(searchParams.maxPrice) : undefined
+        const category = typeof searchParams.category === 'string' ? searchParams.category : undefined
+        const location = typeof searchParams.location === 'string' ? searchParams.location : undefined
+        const condition = typeof searchParams.condition === 'string' ? searchParams.condition : undefined
+
+        if (category && item.category !== category) return false
+        if (location && item.location.toLowerCase() !== location) return false
+        if (condition && item.condition.toLowerCase() !== condition) return false
+        if (minPrice && item.price < minPrice) return false
+        if (maxPrice && item.price > maxPrice) return false
         return true
     })
 

@@ -3,15 +3,11 @@ import { SearchFilters } from "@/components/search/filters"
 import { SearchResults } from "@/components/search/results"
 import { SearchSkeleton } from "@/components/search/skeleton"
 
-type SearchPageProps = {
-    searchParams?: {
-        [key: string]: string | string[] | undefined
-    }
-}
-
-export default async function SearchPage({
+export default function SearchPage({
     searchParams = {},
-}: SearchPageProps) {
+}: {
+    searchParams?: { [key: string]: string | string[] | undefined }
+}) {
     return (
         <div className="container py-6 md:py-8">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">

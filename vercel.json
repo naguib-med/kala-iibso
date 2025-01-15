@@ -1,0 +1,6 @@
+{
+  "buildCommand": "prisma generate && prisma db push && next build",
+  "framework": "nextjs",
+  "installCommand": "npm install --legacy-peer-deps",
+  "outputDirectory": ".next"
+}

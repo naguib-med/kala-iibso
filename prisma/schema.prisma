@@ -22,6 +22,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  resetTokens  ResetToken[]
+
   // Optional for WebAuthn support
   Authenticator Authenticator[]
  

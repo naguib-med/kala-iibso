@@ -1,6 +1,8 @@
 import * as z from "zod";
 import { hash } from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/mail";
+import crypto from "crypto";
 
 const registerSchema = z
   .object({
@@ -44,8 +46,24 @@ export async function POST(req: Request) {
       },
     });
 
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires,
+      },
+    });
+
+    await sendVerificationEmail(email, token);
+
     return new Response(
-      JSON.stringify({ message: "User created successfully" }),
+      JSON.stringify({
+        message:
+          "User created successfully. Please check your email to verify your account.",
+      }),
       { status: 201 }
     );
   } catch (error) {

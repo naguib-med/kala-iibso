@@ -42,7 +42,7 @@ export function SignUpForm() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
-            const response = await fetch("/api/auth/sign-up", {
+            const response = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -63,8 +63,8 @@ export function SignUpForm() {
                 title: "Inscription réussie",
                 description: "Votre compte a été créé avec succès",
             })
-            
-            router.push("/auth/sign-in")
+
+            router.push("/auth/signin")
         } catch (error) {
             if (error instanceof Error) {
                 toast({

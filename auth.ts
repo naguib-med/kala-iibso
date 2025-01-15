@@ -50,6 +50,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Aucun compte trouvé avec cet email");
         }
 
+        if (!user.emailVerified) {
+          throw new Error(
+            "Veuillez vérifier votre email avant de vous connecter"
+          );
+        }
+
         const isPasswordValid = await compare(password, user.password);
 
         if (!isPasswordValid) {
@@ -62,7 +68,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   pages: {
     signIn: "/auth/signin",
+    signOut: "/auth/signout",
     error: "/auth/error",
+    verifyRequest: "/auth/verify-request",
+    newUser: "/auth/new-user",
   },
   session: {
     strategy: "jwt",

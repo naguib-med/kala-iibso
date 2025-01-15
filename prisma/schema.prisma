@@ -49,7 +49,24 @@ model Account {
  
   @@id([provider, providerAccountId])
 }
+
+model ResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expires   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
  
+  @@id([identifier, token])
+}
+
 model Session {
   sessionToken String   @unique
   userId       String
@@ -60,13 +77,6 @@ model Session {
   updatedAt DateTime @updatedAt
 }
  
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
- 
-  @@id([identifier, token])
-}
  
 // Optional for WebAuthn support
 model Authenticator {

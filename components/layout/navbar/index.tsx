@@ -222,7 +222,7 @@ export function Navbar() {
                                             className="transition-colors duration-300 hover:bg-primary/5 hover:text-primary"
                                             asChild
                                         >
-                                            <Link href="/auth/sign-in">Se connecter</Link>
+                                            <Link href="/auth/signin">Se connecter</Link>
                                         </Button>
                                     </motion.div>
 
@@ -234,7 +234,7 @@ export function Navbar() {
                                             className="bg-gradient-to-r from-primary to-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
                                             asChild
                                         >
-                                            <Link href="/auth/sign-up">S&apos;inscrire</Link>
+                                            <Link href="/auth/signup">S&apos;inscrire</Link>
                                         </Button>
                                     </motion.div>
                                 </div>

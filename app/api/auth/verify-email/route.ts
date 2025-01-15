@@ -40,7 +40,10 @@ export async function GET(req: Request) {
 
     await prisma.verificationToken.delete({
       where: {
-        id: [verificationToken.identifier, token],
+        identifier_token: {
+          identifier: verificationToken.identifier,
+          token: token,
+        },
       },
     });
 

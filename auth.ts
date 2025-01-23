@@ -32,19 +32,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
+      id: "credentials",
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("credentials", credentials);
         if (!credentials?.email || !credentials?.password) return null;
 
         const { email, password } = credentials as Credentials;
 
+
         const user = await prisma.user.findUnique({
           where: { email },
         });
+
+        console.log("found user", user);
 
         if (!user || !user.password) {
           throw new Error("Aucun compte trouvé avec cet email");

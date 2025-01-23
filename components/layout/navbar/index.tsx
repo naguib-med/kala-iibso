@@ -14,14 +14,12 @@ import { CartSheet } from "@/components/cart/cart-sheet";
 import {
     Building2,
     Menu,
-    Bell,
     Heart,
     PlusCircle,
     Search,
     ChevronDown,
     MapPin,
     Sparkles,
-    MessageCircle
 } from "lucide-react";
 
 export function Navbar() {
@@ -29,7 +27,6 @@ export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
-    const [notifications,] = useState(3);
     const [showAnnouncement, setShowAnnouncement] = useState(true);
 
     useEffect(() => {
@@ -171,42 +168,6 @@ export function Navbar() {
                                                 </span>
                                             </Button>
                                         </motion.div>
-
-                                        <motion.div
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="relative group"
-                                            >
-                                                <Bell className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
-                                                {notifications > 0 && (
-                                                    <motion.span
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-white"
-                                                    >
-                                                        {notifications}
-                                                    </motion.span>
-                                                )}
-                                            </Button>
-                                        </motion.div>
-
-                                        <motion.div
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="group"
-                                            >
-                                                <MessageCircle className="h-5 w-5 transition-colors duration-300 group-hover:text-primary" />
-                                            </Button>
-                                        </motion.div>
-
                                         <CartSheet />
                                         <UserNav />
                                     </div>

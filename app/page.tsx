@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   Search,
   ArrowRight,
-  Heart,
   Star,
   Shield,
   Truck,
@@ -41,9 +40,9 @@ export default function Home() {
   // Animate stats when in view
   useEffect(() => {
     setStats({
-      users: 50000,
-      listings: 15000,
-      sales: 8000
+      users: 100,
+      listings: 15,
+      sales: 50
     })
   }, [])
 
@@ -60,13 +59,6 @@ export default function Home() {
     { icon: Smartphone, title: "Électronique", description: "Téléphones, ordinateurs et accessoires" },
     { icon: Sofa, title: "Maison", description: "Meubles et décoration" },
     { icon: ShoppingBag, title: "Mode", description: "Vêtements et accessoires" }
-  ]
-
-  const featuredItems = [
-    { title: "Toyota Camry 2020", price: "2,500,000 DJF", image: "https://images.unsplash.com/photo-1621993202323-f438eec934ff?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { title: "iPhone 13 Pro", price: "150,000 DJF", image: "https://images.unsplash.com/photo-1621993202323-f438eec934ff?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { title: "Canapé moderne", price: "85,000 DJF", image: "https://images.unsplash.com/photo-1621993202323-f438eec934ff?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { title: "Montre de luxe", price: "200,000 DJF", image: "https://images.unsplash.com/photo-1621993202323-f438eec934ff?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }
   ]
 
   const testimonials = [
@@ -185,54 +177,7 @@ export default function Home() {
             </Card>
           ))}
         </div>
-      </section>
-
-      {/* Featured Listings with Animation */}
-      <section className="container pb-24">
-        <div className="flex items-center justify-between">
-          <h2 className="text-4xl font-bold tracking-tight">En vedette</h2>
-          <Button variant="ghost" className="group">
-            Voir plus
-            <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredItems.map((item, i) => (
-            <Card
-              key={i}
-              className={`group transform cursor-pointer overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-xl ${i === activeIndex ? 'ring-2 ring-primary ring-offset-2' : ''
-                }`}
-            >
-              <div className="aspect-square relative">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                >
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-4 text-2xl font-bold text-primary">
-                  {item.price}
-                </p>
-                <Button
-                  className="mt-4 w-full transform transition-transform duration-300 group-hover:translate-y-1"
-                >
-                  Voir détails
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </section>
+      </section>  
 
       <section className="bg-primary/5 py-24">
         <div className="container">
@@ -305,37 +250,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Download App Section */}
-      <section className="container py-24">
-        <div className="rounded-3xl bg-primary p-12 lg:p-24">
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div className="text-center lg:text-left">
-              <h2 className="text-3xl font-bold text-white lg:text-5xl">
-                Téléchargez notre application mobile
-              </h2>
-              <p className="mt-4 text-lg text-white/90">
-                Accédez à Suuq partout et à tout moment. Profitez d&apos;une expérience optimisée sur mobile.
-              </p>
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
-                <a href="#" className="inline-block">
-                  <Image src="/Download_on_the_App_Store_Badge_FRCA_RGB_blk_100517.svg" alt="App Store" width={120} height={40} />
-                </a>
-                <a href="#" className="inline-block">
-                  <Image src="/images/GetItOnGooglePlay_Badge_Web_color_French.png" alt="Play Store" width={120} height={40} />
-                </a>
-              </div>
-            </div>
-            <div className="relative h-64 lg:h-96">
-              <Image
-                src="/images/image.png"
-                alt="Mobile App"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Contact Section */}
       <section className="container pb-24">

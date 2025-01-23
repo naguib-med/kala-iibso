@@ -7,7 +7,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
 
   await resend.emails.send({
-    from: "Suuq Djibouti <noreply@suuqdjib.com>",
+    from: "onboarding@resend.dev",
     to: email,
     subject: "Confirm your email",
     html: `

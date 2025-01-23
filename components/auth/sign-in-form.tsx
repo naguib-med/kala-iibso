@@ -42,27 +42,42 @@ export function SignInForm() {
                 email: values.email,
                 password: values.password,
                 redirect: false,
+                callbackUrl: "/"
             })
 
-            if (result?.error) {
-                throw new Error(result.error)
+            console.log("Sign-in result:", result);
+
+            if (!result) {
+                throw new Error("Authentication failed");
             }
 
-            toast({
-                title: "Connexion réussie",
-                description: "Vous êtes maintenant connecté",
-            })
+            if (result.error) {
+                if (result.error.includes("vérifier votre email")) {
+                    toast({
+                        variant: "destructive",
+                        title: "Email non vérifié",
+                        description: "Veuillez vérifier votre email avant de vous connecter"
+                    });
+                    return;
+                }
+                throw new Error(result.error);
+            }
 
-            router.push("/")
-            router.refresh()
-        } catch (error) {
-            if (error instanceof Error) {
+            if (result.ok) {
                 toast({
-                    variant: "destructive",
-                    title: "Erreur",
-                    description: "Email ou mot de passe incorrect",
-                })
+                    title: "Connexion réussie",
+                    description: "Vous êtes maintenant connecté"
+                });
+                router.push(result.url || "/");
+                router.refresh();
             }
+        } catch (error) {
+            console.error("Sign-in error:", error);
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: error instanceof Error ? error.message : "Email ou mot de passe incorrect"
+            });
         }
     }
 

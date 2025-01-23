@@ -19,17 +19,41 @@ import {
     Settings,
     CreditCard,
     Package,
-    MessageSquare,
     LogOut,
     Building2,
     Heart,
 } from "lucide-react";
+
+import { toast } from "@/hooks/use-toast";
+
 
 export function UserNav() {
     const router = useRouter();
     const { data: session } = useSession();
 
     if (!session?.user) return null;
+
+    const handleSignOut = async () => {
+        try {
+            await signOut({
+                redirect: true,
+                redirectTo: "/"
+            });
+            toast({
+                title: "Déconnexion réussie",
+                description: "À bientôt!",
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Erreur",
+                    description: error.message,
+                })
+            }
+    
+        }
+    }
 
     return (
         <DropdownMenu>
@@ -72,11 +96,6 @@ export function UserNav() {
                         Wishlist
                         <DropdownMenuShortcut>⌘W</DropdownMenuShortcut>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/messages")}>
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        Messages
-                        <DropdownMenuShortcut>⌘M</DropdownMenuShortcut>
-                    </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
@@ -92,7 +111,7 @@ export function UserNav() {
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={() => handleSignOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                     <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>

@@ -52,19 +52,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log("found user", user);
 
         if (!user || !user.password) {
-          throw new Error("Aucun compte trouvé avec cet email");
+          return null;
         }
 
         if (!user.emailVerified) {
-          throw new Error(
-            "Veuillez vérifier votre email avant de vous connecter"
-          );
+          return null; // Email non vérifié
         }
 
         const isPasswordValid = await compare(password, user.password);
 
         if (!isPasswordValid) {
-          throw new Error("Mot de passe incorrect");
+          return null; // Mot de passe incorrect
         }
 
         return user;

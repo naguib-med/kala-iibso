@@ -27,6 +27,7 @@ const formSchema = z.object({
 export function SignInForm() {
     const router = useRouter()
     const { toast } = useToast()
+    const [isLoading, setIsLoading] = React.useState(false)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -37,36 +38,34 @@ export function SignInForm() {
     })
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        setIsLoading(true);
         try {
             const result = await signIn("credentials", {
                 email: values.email,
                 password: values.password,
                 redirect: false,
-                callbackUrl: "/"
-            })
-
-            console.log("Sign-in result:", result);
-
+                callbackUrl: "/",
+            });
+    
             if (!result) {
-                throw new Error("Authentication failed");
+                throw new Error("Une erreur s'est produite lors de la connexion");
             }
-
+    
             if (result.error) {
-                if (result.error.includes("vérifier votre email")) {
-                    toast({
-                        variant: "destructive",
-                        title: "Email non vérifié",
-                        description: "Veuillez vérifier votre email avant de vous connecter"
-                    });
-                    return;
+                switch (result.error) {
+                    case "CredentialsSignin":
+                        throw new Error("Email ou mot de passe incorrect");
+                    case "EmailNotVerified":
+                        throw new Error("Veuillez vérifier votre email avant de vous connecter");
+                    default:
+                        throw new Error("Une erreur s'est produite lors de la connexion");
                 }
-                throw new Error(result.error);
             }
-
+    
             if (result.ok) {
                 toast({
                     title: "Connexion réussie",
-                    description: "Vous êtes maintenant connecté"
+                    description: "Vous êtes maintenant connecté",
                 });
                 router.push(result.url || "/");
                 router.refresh();
@@ -75,9 +74,13 @@ export function SignInForm() {
             console.error("Sign-in error:", error);
             toast({
                 variant: "destructive",
-                title: "Erreur",
-                description: error instanceof Error ? error.message : "Email ou mot de passe incorrect"
+                title: "Erreur de connexion",
+                description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite",
             });
+            // Réinitialiser le mot de passe en cas d'erreur
+            form.reset({ email: values.email, password: "" });
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -115,8 +118,25 @@ export function SignInForm() {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" className="w-full">
-                        Se connecter
+                     <Link
+                     href="/auth/forgot-password"
+                     className="text-sm text-primary hover:underline"
+                     >
+                        Mot de passe oublié ?
+                    </Link>
+                    <Button 
+                        type="submit" 
+                        className="w-full" 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <span className="loading loading-spinner loading-sm mr-2"></span>
+                                Connexion en cours...
+                            </>
+                        ) : (
+                            "Se connecter"
+                        )}
                     </Button>
                 </form>
             </Form>

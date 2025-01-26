@@ -17,3 +17,21 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     `,
   });
 };
+
+
+export const sendPasswordResetEmail = async (email: string, token: string) => {
+  console.log("sendPasswordResetEmail", email, token);
+  const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+
+  await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: email,
+    subject: "Reset your password",
+    html: `
+      <h1>Reset your password</h1>
+      <p>Click the link below to reset your password:</p>
+      <a href="${resetLink}">Reset Password</a>
+    `,
+  });
+};
+

@@ -35,14 +35,15 @@ export function UserNav() {
 
     const handleSignOut = async () => {
         try {
-            await signOut({
-                redirect: true,
-                redirectTo: "/"
-            });
+            await signOut({ redirect: false });
+           
             toast({
                 title: "Déconnexion réussie",
                 description: "À bientôt!",
-            })
+            });
+
+            router.push("/");
+            router.refresh();
         } catch (error) {
             if (error instanceof Error) {
                 toast({

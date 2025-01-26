@@ -1,13 +1,13 @@
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
-import type { JWT } from "next-auth/jwt";
-import type { Session } from "next-auth";
-import { compare } from "bcrypt";
+import NextAuth from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { prisma } from '@/lib/prisma';
+import type { JWT } from 'next-auth/jwt';
+import type { Session } from 'next-auth';
+import { compare } from 'bcrypt';
 
-import GoogleProvider from "next-auth/providers/google";
-import GitHubProvider from "next-auth/providers/github";
-import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 interface ExtendedSession extends Session {
   accessToken?: string;
@@ -32,24 +32,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        console.log("credentials", credentials);
+        console.log('credentials', credentials);
         if (!credentials?.email || !credentials?.password) return null;
 
         const { email, password } = credentials as Credentials;
-
 
         const user = await prisma.user.findUnique({
           where: { email },
         });
 
-        console.log("found user", user);
+        console.log('found user', user);
 
         if (!user || !user.password) {
           return null;
@@ -70,14 +69,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify-request",
-    newUser: "/auth/new-user",
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+    error: '/auth/error',
+    verifyRequest: '/auth/verify-request',
+    newUser: '/auth/new-user',
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   callbacks: {
     async session({ session, token }): Promise<ExtendedSession> {

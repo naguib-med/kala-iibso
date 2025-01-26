@@ -1,0 +1,14 @@
+{
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "react/no-unknown-property": [
+      "error",
+      { "ignore": ["cmdk-input-wrapper"] }
+    ],
+    "@typescript-eslint/no-unused-vars": "warn"
+  }
+}

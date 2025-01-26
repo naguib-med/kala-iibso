@@ -1,17 +1,17 @@
-import * as z from "zod";
-import { hash } from "bcrypt";
-import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/mail";
-import crypto from "crypto";
+import * as z from 'zod';
+import { hash } from 'bcrypt';
+import { prisma } from '@/lib/prisma';
+import { sendVerificationEmail } from '@/lib/mail';
+import crypto from 'crypto';
 
 const registerSchema = z
   .object({
-    email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    email: z.string().email('Invalid email'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: 'Passwords do not match',
   });
 
 function generateAvatarUrl(email: string) {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     });
 
     if (user) {
-      return new Response(JSON.stringify({ error: "User already exists" }), {
+      return new Response(JSON.stringify({ error: 'User already exists' }), {
         status: 400,
       });
     }
@@ -42,11 +42,11 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         image: avatarUrl,
-        name: email.split("@")[0],
+        name: email.split('@')[0],
       },
     });
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
 
     await prisma.verificationToken.create({
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({
         message:
-          "User created successfully. Please check your email to verify your account.",
+          'User created successfully. Please check your email to verify your account.',
       }),
       { status: 201 }
     );
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
     });
   }

@@ -66,11 +66,13 @@ export default function ResetPasswordPage() {
       });
       router.push("/auth/signin");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Invalid or expired reset link. Please try again.",
-      });
+      if (error instanceof Error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message,
+        });
+      }
     } finally {
       setIsLoading(false);
     }

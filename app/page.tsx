@@ -25,7 +25,7 @@ import { NewsletterSection } from "@/components/NewsletterSection"
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [, setActiveIndex] = useState(0)
   const [stats, setStats] = useState({ users: 0, listings: 0, sales: 0 })
 
   // Handle scroll effect
@@ -177,7 +177,7 @@ export default function Home() {
             </Card>
           ))}
         </div>
-      </section>  
+      </section>
 
       <section className="bg-primary/5 py-24">
         <div className="container">

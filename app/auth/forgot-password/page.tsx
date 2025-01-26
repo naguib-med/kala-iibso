@@ -51,11 +51,13 @@ export default function ForgotPasswordPage() {
         description: "If an account exists, we've sent a reset link.",
       });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-      });
+        if (error instanceof Error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.message,
+              });
+        }   
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +72,7 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Enter your email address and we'll send you a link to reset your
+            Enter your email address and we&apos;ll send you a link to reset your
             password.
           </p>
         </div>

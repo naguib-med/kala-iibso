@@ -46,39 +46,6 @@ const profileSchema = z.object({
     }).optional(),
 });
 
-// Mock user data - replace with API call
-const mockUser = {
-    id: "user123",
-    trustScore: 85,
-    badges: [
-        {
-            id: "verified",
-            name: "Verified User",
-            description: "This user has verified their identity",
-            icon: "shield",
-            criteria: [
-                {
-                    type: "VERIFICATION",
-                    requirement: "Identity verified",
-                    value: true,
-                },
-            ],
-        },
-        {
-            id: "trusted",
-            name: "Trusted Member",
-            description: "High trust score and positive reviews",
-            icon: "star",
-            criteria: [
-                {
-                    type: "RATING",
-                    requirement: "Trust score above 80",
-                    value: 80,
-                },
-            ],
-        },
-    ],
-};
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -113,11 +80,13 @@ export default function ProfilePage() {
                 description: "Your profile has been updated.",
             });
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to update profile. Please try again.",
-            });
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: error.message,
+                });
+            }
         }
     }
 
@@ -141,11 +110,13 @@ export default function ProfilePage() {
                 description: "Profile picture updated successfully.",
             });
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to update profile picture. Please try again.",
-            });
+            if (error instanceof Error) {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: error.message,
+                });
+            }
         } finally {
             setIsUploading(false);
         }

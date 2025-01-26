@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,16 +47,49 @@ const profileSchema = z.object({
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const [isUploading, setIsUploading] = useState(false);
+  const [profileData, setProfileData] = useState<z.infer<typeof profileSchema>>();
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const data = await response.json();
+        setProfileData(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsProfileLoading(false);
+      }
+    }
+
+    if (status === 'authenticated') {
+      fetchProfile();
+    }
+  }, [status]);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: session?.user?.name || '',
-      email: session?.user?.email || '',
+      name: '',
+      email: '',
       phone: '',
       bio: '',
     },
   });
+
+  // Reset form when data is available
+  useEffect(() => {
+    if (session?.user && profileData) {
+      form.reset({
+        name: session.user.name || '',
+        email: session.user.email || '',
+        phone: profileData.phone || '',
+        bio: profileData.bio || '',
+      });
+    }
+  }, [session, profileData, form]);
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     try {
@@ -121,7 +154,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (status === 'loading') {
+  if (status === 'loading' || isProfileLoading) {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

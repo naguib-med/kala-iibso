@@ -20,6 +20,8 @@ model User {
   emailVerified DateTime?
   password      String
   image         String?
+  phone         String?      
+  bio           String?
   accounts      Account[]
   sessions      Session[]
   resetTokens  ResetToken[]

@@ -6,6 +6,9 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
 
+import GlobalSuspense from "@/components/GlobalSuspense";
+
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,7 +46,7 @@ export default function RootLayout({
           >
             <Navbar />
             <main className="min-h-screen px-4 py-8">
-              {children}
+              <GlobalSuspense>{children}</GlobalSuspense>
             </main>
             <Footer />
             <Toaster />

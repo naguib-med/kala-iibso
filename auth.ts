@@ -80,16 +80,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async session({ session, token }): Promise<ExtendedSession> {
+      if (!token.sub) {
+        throw new Error('No user ID in token');
+      }
+
+      // Fetch user data from database to get the latest image
+      const user = await prisma.user.findUnique({
+        where: { id: token.sub },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          image: true
+        }
+      });
+  
       return {
         ...session,
         accessToken: token.accessToken as string,
         user: {
           ...session.user,
           id: token.sub,
+          image: user?.image || session.user?.image, // Use latest image from database
+          name: user?.name || session.user?.name,
+          email: user?.email || session.user?.email
         },
       };
     },
-    async jwt({ token }): Promise<JWT> {
+    async jwt({ token, user, trigger, session }) {
+      if (trigger === "update" && session?.user) {
+        return {
+          ...token,
+          picture: session.user.image || token.picture,
+          name: session.user.name || token.name,
+          email: session.user.email || token.email
+        };
+      }
+      
+      if (user) {
+        token.sub = user.id;
+      }
+      
       return token;
     },
   },

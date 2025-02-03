@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn, signOut, getSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,7 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
 
@@ -45,7 +44,7 @@ const profileSchema = z.object({
 });
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [isUploading, setIsUploading] = useState(false);
   const [profileData, setProfileData] = useState<z.infer<typeof profileSchema>>();
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -54,7 +53,10 @@ export default function ProfilePage() {
     async function fetchProfile() {
       try {
         const response = await fetch('/api/user/profile');
-        if (!response.ok) throw new Error('Failed to fetch profile');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         setProfileData(data);
       } catch (error) {
@@ -63,7 +65,7 @@ export default function ProfilePage() {
         setIsProfileLoading(false);
       }
     }
-
+  
     if (status === 'authenticated') {
       fetchProfile();
     }
@@ -79,7 +81,6 @@ export default function ProfilePage() {
     },
   });
 
-  // Reset form when data is available
   useEffect(() => {
     if (session?.user && profileData) {
       form.reset({
@@ -120,22 +121,44 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleAvatarUpload(
+  const handleAvatarUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  ) => {
+    if (!event.target.files?.[0]) return;
 
     try {
       setIsUploading(true);
+      const file = event.target.files[0];
+      
+      const formData = new FormData();
+      formData.append('avatar', file);
 
-      // Here you would typically:
-      // 1. Upload the file to your storage service
-      // 2. Get the URL of the uploaded file
-      // 3. Update the user's profile with the new avatar URL
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+      });
 
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (!response.ok) {
+        const error = await response.json();
+        setIsUploading(false);
+        throw new Error(error.message || 'Failed to upload avatar');
+      }
+
+      const { url } = await response.json();
+      
+      setProfileData((prev) => ({
+        name: prev?.name || '',
+        email: prev?.email || '',
+        ...prev,
+        image: url,
+      }));
+  
+      await update({
+        user: {
+          ...session?.user,
+          image: url,
+        }
+      });
 
       toast({
         title: 'Success',
@@ -152,7 +175,7 @@ export default function ProfilePage() {
     } finally {
       setIsUploading(false);
     }
-  }
+  };
 
   if (status === 'loading' || isProfileLoading) {
     return (
@@ -173,134 +196,124 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl py-10 px-4 mt-8">
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="verification">Verification</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews & Trust</TabsTrigger>
-        </TabsList>
+    <div className="container mx-auto max-w-4xl py-10 px-4 mt-24">      
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Settings</CardTitle>
+          <CardDescription>
+            Manage your profile information and preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={session?.user?.image || ''} />
+              <AvatarFallback>
+                {session?.user?.name?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <Input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="avatar-upload"
+                onChange={handleAvatarUpload}
+              />
+              <Button
+                variant="outline"
+                disabled={isUploading}
+                onClick={() =>
+                  document.getElementById('avatar-upload')?.click()
+                }
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Change Avatar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
 
-        <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
-              <CardDescription>
-                Manage your profile information and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={session?.user?.image || ''} />
-                  <AvatarFallback>
-                    {session?.user?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="avatar-upload"
-                    onChange={handleAvatarUpload}
-                  />
-                  <Button
-                    variant="outline"
-                    disabled={isUploading}
-                    onClick={() =>
-                      document.getElementById('avatar-upload')?.click()
-                    }
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Change Avatar
-                      </>
-                    )}
-                  </Button>
-                </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Tell us a little about yourself"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Button type="submit">Save Changes</Button>
               </div>
-
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us a little about yourself"
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end">
-                    <Button type="submit">Save Changes</Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
-import animate from "tailwindcss-animate";
 
-export default {
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -15,6 +14,13 @@ export default {
       screens: {
         "2xl": "1400px",
       },
+    },
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
     },
     extend: {
       backgroundImage: {
@@ -93,5 +99,6 @@ export default {
       },
     },
   },
-  plugins: [animate],
-} satisfies Config;
+  plugins: [require("tailwindcss-animate")],
+};
+export default config;

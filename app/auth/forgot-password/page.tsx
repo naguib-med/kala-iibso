@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,14 +12,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast"
-import { Building2 } from "lucide-react";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
+import { Building2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: 'Please enter a valid email address.',
   }),
 });
 
@@ -29,16 +29,16 @@ export default function ForgotPasswordPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
@@ -47,17 +47,17 @@ export default function ForgotPasswordPage() {
       }
 
       toast({
-        title: "Check your email",
+        title: 'Check your email',
         description: "If an account exists, we've sent a reset link.",
       });
     } catch (error) {
-        if (error instanceof Error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: error.message,
-              });
-        }   
+      if (error instanceof Error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.message,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -72,8 +72,8 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Enter your email address and we&apos;ll send you a link to reset your
-            password.
+            Enter your email address and we&apos;ll send you a link to reset
+            your password.
           </p>
         </div>
 
@@ -97,12 +97,8 @@ export default function ForgotPasswordPage() {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Sending reset link..." : "Send reset link"}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Sending reset link...' : 'Send reset link'}
             </Button>
 
             <div className="text-center">

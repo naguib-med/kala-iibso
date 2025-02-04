@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Car,
   Smartphone,
@@ -17,93 +17,108 @@ import {
   Users,
   PhoneCall,
   MessageSquare,
-  CheckCircle
-} from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { NewsletterSection } from "@/components/NewsletterSection"
+  CheckCircle,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { NewsletterSection } from '@/components/NewsletterSection';
 
 export default function Home() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [, setActiveIndex] = useState(0)
-  const [stats, setStats] = useState({ users: 0, listings: 0, sales: 0 })
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [, setActiveIndex] = useState(0);
+  const [stats, setStats] = useState({ users: 0, listings: 0, sales: 0 });
 
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Animate stats when in view
   useEffect(() => {
     setStats({
       users: 100,
       listings: 15,
-      sales: 50
-    })
-  }, [])
+      sales: 50,
+    });
+  }, []);
 
   // Auto-scroll featured items
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % 4)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
+      setActiveIndex((prev) => (prev + 1) % 4);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const categories = [
-    { icon: Car, title: "Véhicules", description: "Voitures, motos et pièces détachées" },
-    { icon: Smartphone, title: "Électronique", description: "Téléphones, ordinateurs et accessoires" },
-    { icon: Sofa, title: "Maison", description: "Meubles et décoration" },
-    { icon: ShoppingBag, title: "Mode", description: "Vêtements et accessoires" }
-  ]
+    {
+      icon: Car,
+      title: 'Véhicules',
+      description: 'Voitures, motos et pièces détachées',
+    },
+    {
+      icon: Smartphone,
+      title: 'Électronique',
+      description: 'Téléphones, ordinateurs et accessoires',
+    },
+    { icon: Sofa, title: 'Maison', description: 'Meubles et décoration' },
+    {
+      icon: ShoppingBag,
+      title: 'Mode',
+      description: 'Vêtements et accessoires',
+    },
+  ];
 
   const testimonials = [
     {
-      name: "Ahmed Hassan",
-      role: "Vendeur Vérifié",
-      content: "Suuq m'a permis de développer mon business. La plateforme est intuitive et la communauté est active.",
-      rating: 5
+      name: 'Ahmed Hassan',
+      role: 'Vendeur Vérifié',
+      content:
+        "Suuq m'a permis de développer mon business. La plateforme est intuitive et la communauté est active.",
+      rating: 5,
     },
     {
-      name: "Fatouma Ali",
-      role: "Acheteuse Régulière",
-      content: "Je trouve toujours ce que je cherche à des prix raisonnables. Le service client est excellent !",
-      rating: 5
+      name: 'Fatouma Ali',
+      role: 'Acheteuse Régulière',
+      content:
+        'Je trouve toujours ce que je cherche à des prix raisonnables. Le service client est excellent !',
+      rating: 5,
     },
     {
-      name: "Mohamed Omar",
-      role: "Vendeur Pro",
-      content: "La meilleure plateforme de vente à Djibouti. Les outils pour les vendeurs sont très utiles.",
-      rating: 4
-    }
-  ]
+      name: 'Mohamed Omar',
+      role: 'Vendeur Pro',
+      content:
+        'La meilleure plateforme de vente à Djibouti. Les outils pour les vendeurs sont très utiles.',
+      rating: 4,
+    },
+  ];
 
   const features = [
     {
       icon: Shield,
-      title: "Paiements Sécurisés",
-      description: "Transactions protégées et sécurisées"
+      title: 'Paiements Sécurisés',
+      description: 'Transactions protégées et sécurisées',
     },
     {
       icon: Truck,
-      title: "Livraison Rapide",
-      description: "Service de livraison dans tout Djibouti"
+      title: 'Livraison Rapide',
+      description: 'Service de livraison dans tout Djibouti',
     },
     {
       icon: MessageSquare,
-      title: "Chat Intégré",
-      description: "Communication facile entre acheteurs et vendeurs"
+      title: 'Chat Intégré',
+      description: 'Communication facile entre acheteurs et vendeurs',
     },
     {
       icon: CheckCircle,
-      title: "Vendeurs Vérifiés",
-      description: "Système de vérification des vendeurs"
-    }
-  ]
+      title: 'Vendeurs Vérifiés',
+      description: 'Système de vérification des vendeurs',
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-12">
@@ -127,7 +142,8 @@ export default function Home() {
               Suuq Djibouti
             </h1>
             <p className="max-w-2xl text-lg text-white/90 md:text-xl lg:text-2xl">
-              Découvrez le plus grand marché en ligne de Djibouti. Une expérience d&apos;achat et de vente unique.
+              Découvrez le plus grand marché en ligne de Djibouti. Une
+              expérience d&apos;achat et de vente unique.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button
@@ -147,9 +163,7 @@ export default function Home() {
                 className="px-8 py-6 text-lg transition-all duration-300 hover:scale-105"
                 asChild
               >
-                <Link href="/sell">
-                  Vendre un article
-                </Link>
+                <Link href="/sell">Vendre un article</Link>
               </Button>
             </div>
           </div>
@@ -169,7 +183,9 @@ export default function Home() {
             >
               <div className="flex flex-col items-center text-center">
                 <category.icon className="h-16 w-16 transform text-primary transition-all duration-300 group-hover:scale-110 group-hover:text-primary/80" />
-                <h3 className="mt-6 text-2xl font-semibold">{category.title}</h3>
+                <h3 className="mt-6 text-2xl font-semibold">
+                  {category.title}
+                </h3>
                 <p className="mt-4 text-muted-foreground">
                   {category.description}
                 </p>
@@ -184,17 +200,23 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="flex flex-col items-center text-center">
               <Users className="h-12 w-12 text-primary" />
-              <h3 className="mt-4 text-4xl font-bold">{stats.users.toLocaleString()}+</h3>
+              <h3 className="mt-4 text-4xl font-bold">
+                {stats.users.toLocaleString()}+
+              </h3>
               <p className="mt-2 text-muted-foreground">Utilisateurs Actifs</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <ShoppingBag className="h-12 w-12 text-primary" />
-              <h3 className="mt-4 text-4xl font-bold">{stats.listings.toLocaleString()}+</h3>
+              <h3 className="mt-4 text-4xl font-bold">
+                {stats.listings.toLocaleString()}+
+              </h3>
               <p className="mt-2 text-muted-foreground">Annonces Publiées</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <Clock className="h-12 w-12 text-primary" />
-              <h3 className="mt-4 text-4xl font-bold">{stats.sales.toLocaleString()}+</h3>
+              <h3 className="mt-4 text-4xl font-bold">
+                {stats.sales.toLocaleString()}+
+              </h3>
               <p className="mt-2 text-muted-foreground">Ventes Réalisées</p>
             </div>
           </div>
@@ -211,11 +233,16 @@ export default function Home() {
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => (
-            <Card key={index} className="group p-6 transition-all duration-300 hover:shadow-lg">
+            <Card
+              key={index}
+              className="group p-6 transition-all duration-300 hover:shadow-lg"
+            >
               <div className="flex flex-col items-center text-center">
                 <feature.icon className="h-12 w-12 text-primary transition-transform duration-300 group-hover:scale-110" />
                 <h3 className="mt-4 text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-muted-foreground">{feature.description}</p>
+                <p className="mt-2 text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
             </Card>
           ))}
@@ -225,7 +252,9 @@ export default function Home() {
       {/* Testimonials Section */}
       <section className="py-24 bg-primary/5">
         <div className="container">
-          <h2 className="text-center text-4xl font-bold">Ce que disent nos utilisateurs</h2>
+          <h2 className="text-center text-4xl font-bold">
+            Ce que disent nos utilisateurs
+          </h2>
           <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="p-6">
@@ -235,21 +264,27 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="font-semibold">{testimonial.name}</h3>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {testimonial.role}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-1">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                    <Star
+                      key={i}
+                      className="h-4 w-4 fill-primary text-primary"
+                    />
                   ))}
                 </div>
-                <p className="mt-4 text-muted-foreground">{testimonial.content}</p>
+                <p className="mt-4 text-muted-foreground">
+                  {testimonial.content}
+                </p>
               </Card>
             ))}
           </div>
         </div>
       </section>
-
 
       {/* Contact Section */}
       <section className="container pb-24">
@@ -313,5 +348,5 @@ export default function Home() {
       {/* Newsletter Section */}
       <NewsletterSection />
     </div>
-  )
+  );
 }

@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Exécuter ESLint et Prettier
+npm run lint
+npm run format -- --list-different
+
+# Ajouter les fichiers modifiés après le formatage
+git add .

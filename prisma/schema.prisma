@@ -25,6 +25,11 @@ model User {
   accounts      Account[]
   sessions      Session[]
   resetTokens  ResetToken[]
+  addresses      Address[]
+  paymentMethods PaymentMethod[]
+  orders         Order[]
+  wishlistItems  WishlistItem[]
+  preferredSize  String?
 
   // Optional for WebAuthn support
   Authenticator Authenticator[]
@@ -96,4 +101,64 @@ model Authenticator {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
  
   @@id([userId, credentialID])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  isDefault Boolean  @default(false)
+  user      User     @relation(fields: [userEmail], references: [email])
+  userEmail String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userEmail])
+}
+
+model PaymentMethod {
+  id         String   @id @default(cuid())
+  cardNumber String
+  expiryDate String
+  cardHolder String
+  isDefault  Boolean  @default(false)
+  user       User     @relation(fields: [userEmail], references: [email])
+  userEmail  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userEmail])
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  status    OrderStatus @default(PROCESSING)
+  total     Float
+  items     Json
+  user      User        @relation(fields: [userEmail], references: [email])
+  userEmail String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userEmail])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  productId String
+  user      User     @relation(fields: [userEmail], references: [email])
+  userEmail String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userEmail])
+}
+
+enum OrderStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }

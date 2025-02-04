@@ -74,8 +74,7 @@ export function SignInForm() {
         router.push(result.url || '/');
         router.refresh();
       }
-    } catch (error) {
-      console.error('Sign-in error:', error);
+    } catch (error) {  
       toast({
         variant: 'destructive',
         title: 'Erreur de connexion',
@@ -84,7 +83,6 @@ export function SignInForm() {
             ? error.message
             : "Une erreur inattendue s'est produite",
       });
-      // Réinitialiser le mot de passe en cas d'erreur
       form.reset({ email: values.email, password: '' });
     } finally {
       setIsLoading(false);

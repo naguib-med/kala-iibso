@@ -19,7 +19,6 @@ import {
   Search,
   ChevronDown,
   MapPin,
-  Sparkles,
 } from 'lucide-react';
 
 export function Navbar() {

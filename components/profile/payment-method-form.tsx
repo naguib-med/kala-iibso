@@ -32,7 +32,8 @@ const CARD_TYPES = {
 
 const getCardType = (number: string) => {
   const cleanNumber = number.replace(/\D/g, '');
-  return Object.entries(CARD_TYPES).find(([_, pattern]) => 
+  // Using a different variable name instead of '_' to avoid linting warning
+  return Object.entries(CARD_TYPES).find(([cardName, pattern]) =>
     pattern.test(cleanNumber)
   )?.[0] || null;
 };
@@ -85,7 +86,7 @@ const paymentMethodSchema = z.object({
   isDefault: z.boolean().default(false),
 });
 
-type PaymentMethod = z.infer<typeof paymentMethodSchema> & { 
+type PaymentMethod = z.infer<typeof paymentMethodSchema> & {
   id: string;
   last4: string;
   cardType: string | null;
@@ -96,9 +97,9 @@ interface PaymentMethodFormProps {
   onPaymentMethodsChange: (methods: PaymentMethod[]) => void;
 }
 
-export function PaymentMethodForm({ 
-  paymentMethods, 
-  onPaymentMethodsChange 
+export function PaymentMethodForm({
+  paymentMethods,
+  onPaymentMethodsChange
 }: PaymentMethodFormProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,19 +123,11 @@ export function PaymentMethodForm({
 
     // Format based on card type
     if (type === 'amex') {
-      return cleaned.replace(/(\d{4})(\d{6})?(\d{5})?/, (_, p1, p2, p3) => 
+      return cleaned.replace(/(\d{4})(\d{6})?(\d{5})?/, (_, p1, p2, p3) =>
         [p1, p2, p3].filter(Boolean).join(' ')
       );
     }
     return cleaned.replace(/(\d{4})/g, '$1 ').trim();
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`;
-    }
-    return cleaned;
   };
 
   const onSubmit = async (values: z.infer<typeof paymentMethodSchema>) => {
@@ -160,9 +153,9 @@ export function PaymentMethodForm({
       }
 
       const updatedMethod = await response.json();
-      
+
       if (editingId) {
-        onPaymentMethodsChange(paymentMethods.map(method => 
+        onPaymentMethodsChange(paymentMethods.map(method =>
           method.id === editingId ? updatedMethod : method
         ));
       } else {
@@ -209,7 +202,7 @@ export function PaymentMethodForm({
       }
 
       onPaymentMethodsChange(paymentMethods.filter(method => method.id !== id));
-      
+
       toast({
         title: 'Success',
         description: 'Payment method deleted successfully',
@@ -248,8 +241,8 @@ export function PaymentMethodForm({
           >
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <CardTypeIcon 
-                  type={method.cardType} 
+                <CardTypeIcon
+                  type={method.cardType}
                   className="w-6 h-6"
                 />
               </div>
@@ -312,8 +305,8 @@ export function PaymentMethodForm({
                         maxLength={19}
                       />
                       <div className="absolute right-3 top-2.5">
-                        <CardTypeIcon 
-                          type={cardType} 
+                        <CardTypeIcon
+                          type={cardType}
                           className="w-5 h-5"
                         />
                       </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
 import { cloudinary } from '@/lib/cloudinary';
+import { Readable } from 'stream';
 
 export async function POST(req: Request) {
   try {
@@ -55,22 +55,17 @@ export async function POST(req: Request) {
       );
 
       // Write buffer to stream
-      const bufferStream = require('stream').Readable.from(buffer);
-      bufferStream.pipe(uploadStream);
+      Readable.from(buffer).pipe(uploadStream);
     });
 
     const uploadResult = await uploadPromise as { secure_url: string };
 
-     // Debug: Vérifie l'utilisateur avant la mise à jour
-     const userBefore = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    // Update user profile with new avatar URL
-    const updatedUser = await prisma.user.update({
-      where: { email: session.user.email },
-      data: { image: uploadResult.secure_url },
-    });
+    if (!uploadResult?.secure_url) {
+      return NextResponse.json(
+        { error: 'Failed to upload avatar' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ url: uploadResult.secure_url });
   } catch (error) {

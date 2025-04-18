@@ -27,7 +27,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  // const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,7 +41,7 @@ export function Navbar() {
   return (
     <div className="fixed inset-x-0 top-0 z-50">
       {/* Animated Announcement Banner */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {showAnnouncement && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
@@ -69,7 +69,7 @@ export function Navbar() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Main Navbar with Glassmorphism */}
       <motion.header

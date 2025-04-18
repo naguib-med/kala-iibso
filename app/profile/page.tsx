@@ -2,22 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
   CardContent,
@@ -34,159 +19,64 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Upload, CreditCard, Package, Heart, MapPin, Plus, Download } from 'lucide-react';
+import { Loader2, Package, Heart, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ProfileForm } from '@/components/profile/profile-form';
+import { AddressForm } from '@/components/profile/address-form';
+import { PaymentMethodForm } from '@/components/profile/payment-method-form';
+import { Address, PaymentMethod } from '@/lib/types';
 
-const addressSchema = z.object({
-  street: z.string().min(1, "Street is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  zipCode: z.string().min(1, "ZIP code is required"),
-  isDefault: z.boolean().default(false),
-});
+interface Order {
+  id: string;
+  date: string;
+  status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  total: number;
+}
 
-const paymentSchema = z.object({
-  cardNumber: z.string().min(16, "Invalid card number"),
-  expiryDate: z.string().min(5, "Invalid expiry date"),
-  cardHolder: z.string().min(1, "Card holder name is required"),
-  isDefault: z.boolean().default(false),
-});
-
-const profileSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  bio: z.string().max(500).optional(),
-  preferredSize: z.string().optional(),
-  addresses: z.array(addressSchema),
-  paymentMethods: z.array(paymentSchema),
-});
+interface WishlistItem {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+}
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
-  const [orders, setOrders] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-  const [addresses, setAddresses] = useState([]);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
-  const form = useForm<z.infer<typeof profileSchema>>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      bio: '',
-      preferredSize: '',
-      addresses: [],
-      paymentMethods: [],
-    },
-  });
-
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files?.[0]) return;
-
-    try {
-      setIsUploading(true);
-      const file = event.target.files[0];
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      const response = await fetch('/api/user/avatar', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload avatar');
-      }
-
-      const { url } = await response.json();
-      
-      await update({
-        user: {
-          ...session?.user,
-          image: url,
-        }
-      });
-
-      toast({
-        title: 'Success',
-        description: 'Profile picture updated successfully.',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to upload avatar',
-      });
-    } finally {
-      setIsUploading(false);
-    }
+  const handleAddressesChange = (newAddresses: Address[]) => {
+    setAddresses(newAddresses);
   };
 
-  const onSubmit = async (values: z.infer<typeof profileSchema>) => {
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
-
-      const updatedProfile = await response.json();
-      
-      await update({
-        user: {
-          ...session?.user,
-          name: updatedProfile.name,
-          email: updatedProfile.email,
-        }
-      });
-
-      toast({
-        title: 'Success',
-        description: 'Profile updated successfully.',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update profile',
-      });
-    }
+  const handlePaymentMethodsChange = (newMethods: PaymentMethod[]) => {
+    setPaymentMethods(newMethods);
   };
 
   useEffect(() => {
     async function fetchProfileData() {
       try {
-        const [profileRes, ordersRes, wishlistRes] = await Promise.all([
-          fetch('/api/user/profile'),
+        const [ordersRes, wishlistRes, addressesRes, paymentMethodsRes] = await Promise.all([
           fetch('/api/user/orders'),
-          fetch('/api/user/wishlist')
+          fetch('/api/user/wishlist'),
+          fetch('/api/user/addresses'),
+          fetch('/api/user/payment-methods')
         ]);
         
-        const [profile, orders, wishlist] = await Promise.all([
-          profileRes.json(),
+        const [orders, wishlist, addresses, paymentMethods] = await Promise.all([
           ordersRes.json(),
-          wishlistRes.json()
+          wishlistRes.json(),
+          addressesRes.json(),
+          paymentMethodsRes.json()
         ]);
 
         setOrders(orders);
         setWishlist(wishlist);
-        setAddresses(profile.addresses || []);
-        setPaymentMethods(profile.paymentMethods || []);
-        
-        form.reset({
-          ...profile,
-          addresses: profile.addresses || [],
-          paymentMethods: profile.paymentMethods || []
-        });
+        setAddresses(addresses);
+        setPaymentMethods(paymentMethods);
       } catch (error) {
         console.error('Error fetching profile data:', error);
         toast({
@@ -202,59 +92,7 @@ export default function ProfilePage() {
     if (status === 'authenticated') {
       fetchProfileData();
     }
-  }, [status, form]);
-
-  // Gestion des adresses
-  const handleAddAddress = async (newAddress) => {
-    try {
-      const response = await fetch('/api/user/addresses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAddress),
-      });
-      
-      if (!response.ok) throw new Error('Failed to add address');
-      
-      const updatedAddresses = await response.json();
-      setAddresses(updatedAddresses);
-      toast({
-        title: 'Success',
-        description: 'Address added successfully',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
-    }
-  };
-
-  // Gestion des méthodes de paiement
-  const handleAddPaymentMethod = async (newPaymentMethod) => {
-    try {
-      const response = await fetch('/api/user/payment-methods', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPaymentMethod),
-      });
-      
-      if (!response.ok) throw new Error('Failed to add payment method');
-      
-      const updatedPaymentMethods = await response.json();
-      setPaymentMethods(updatedPaymentMethods);
-      toast({
-        title: 'Success',
-        description: 'Payment method added successfully',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
-    }
-  };
+  }, [status]);
 
   if (isLoading) {
     return (
@@ -283,121 +121,8 @@ export default function ProfilePage() {
                 Manage your profile information and preferences
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={session?.user?.image || ''} />
-                  <AvatarFallback>
-                    {session?.user?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="avatar-upload"
-                    onChange={handleAvatarUpload}
-                  />
-                  <Button
-                    variant="outline"
-                    disabled={isUploading}
-                    onClick={() =>
-                      document.getElementById('avatar-upload')?.click()
-                    }
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Change Avatar
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us a little about yourself"
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="preferredSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preferred Size</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g., M, L, XL" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Save Changes</Button>
-                </form>
-              </Form>
+            <CardContent>
+              <ProfileForm />
             </CardContent>
           </Card>
         </TabsContent>
@@ -411,27 +136,10 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {addresses.map((address, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded">
-                    <div>
-                      <p className="font-medium">{address.street}</p>
-                      <p className="text-sm text-gray-500">
-                        {address.city}, {address.state} {address.zipCode}
-                      </p>
-                      {address.isDefault && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    <Button variant="ghost" size="sm">Edit</Button>
-                  </div>
-                ))}
-                <Button onClick={() => handleAddAddress()} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" /> Add New Address
-                </Button>
-              </div>
+              <AddressForm
+                addresses={addresses}
+                onAddressesChange={setAddresses}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -445,27 +153,10 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {paymentMethods.map((method, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded">
-                    <div className="flex items-center">
-                      <CreditCard className="h-6 w-6 mr-4" />
-                      <div>
-                        <p className="font-medium">•••• •••• •••• {method.cardNumber.slice(-4)}</p>
-                        <p className="text-sm text-gray-500">Expires {method.expiryDate}</p>
-                      </div>
-                    </div>
-                    {method.isDefault && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Default
-                      </span>
-                    )}
-                  </div>
-                ))}
-                <Button onClick={() => handleAddPaymentMethod()} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" /> Add New Payment Method
-                </Button>
-              </div>
+              <PaymentMethodForm
+                paymentMethods={paymentMethods}
+                onPaymentMethodsChange={setPaymentMethods}
+              />
             </CardContent>
           </Card>
         </TabsContent>

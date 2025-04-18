@@ -1,43 +1,34 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
- 
-generator client {
-  provider = "prisma-client-js"
-}
- 
-model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
-  phone         String?      
-  bio           String?
-  accounts      Account[]
-  sessions      Session[]
-  resetTokens  ResetToken[]
-  addresses      Address[]
-  paymentMethods PaymentMethod[]
-  orders         Order[]
-  wishlistItems  WishlistItem[]
-  preferredSize  String?
 
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  emailVerified  DateTime?
+  password       String
+  image          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  bio            String?
+  phone          String?
+  preferredSize  String?
+  accounts       Account[]
+  addresses      Address[]
+  Authenticator  Authenticator[]
+  orders         Order[]
+  paymentMethods PaymentMethod[]
+  resetTokens    ResetToken[]
+  sessions       Session[]
+  wishlistItems  WishlistItem[]
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -50,12 +41,10 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([provider, providerAccountId])
 }
 
@@ -64,15 +53,15 @@ model ResetToken {
   token     String   @unique
   expires   DateTime
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@id([identifier, token])
 }
 
@@ -80,14 +69,11 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
- 
- 
-// Optional for WebAuthn support
+
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -97,9 +83,8 @@ model Authenticator {
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([userId, credentialID])
 }
 
@@ -110,10 +95,10 @@ model Address {
   state     String
   zipCode   String
   isDefault Boolean  @default(false)
-  user      User     @relation(fields: [userEmail], references: [email])
   userEmail String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userEmail], references: [email])
 
   @@index([userEmail])
 }
@@ -124,10 +109,11 @@ model PaymentMethod {
   expiryDate String
   cardHolder String
   isDefault  Boolean  @default(false)
-  user       User     @relation(fields: [userEmail], references: [email])
   userEmail  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  cardType   String?
+  user       User     @relation(fields: [userEmail], references: [email])
 
   @@index([userEmail])
 }
@@ -137,10 +123,10 @@ model Order {
   status    OrderStatus @default(PROCESSING)
   total     Float
   items     Json
-  user      User        @relation(fields: [userEmail], references: [email])
   userEmail String
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userEmail], references: [email])
 
   @@index([userEmail])
 }
@@ -148,10 +134,10 @@ model Order {
 model WishlistItem {
   id        String   @id @default(cuid())
   productId String
-  user      User     @relation(fields: [userEmail], references: [email])
   userEmail String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userEmail], references: [email])
 
   @@index([userEmail])
 }

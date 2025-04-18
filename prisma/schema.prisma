@@ -26,7 +26,7 @@ model User {
   paymentMethods PaymentMethod[]
   resetTokens    ResetToken[]
   sessions       Session[]
-  wishlistItems  WishlistItem[]
+  wishlist       Wishlist[]      // Renommé de wishlistItems à wishlist
 }
 
 model Account {
@@ -131,15 +131,30 @@ model Order {
   @@index([userEmail])
 }
 
-model WishlistItem {
+model Product {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String
+  stock       Int        @default(0)
+  category    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  wishlist    Wishlist[]
+}
+
+model Wishlist {
   id        String   @id @default(cuid())
   productId String
   userEmail String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userEmail], references: [email])
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([userEmail])
+  @@index([productId])
 }
 
 enum OrderStatus {

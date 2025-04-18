@@ -22,8 +22,20 @@ interface Credentials {
   password: string;
 }
 
+// Création d'un adaptateur Prisma personnalisé
+const customPrismaAdapter = {
+  ...PrismaAdapter(prisma),
+  createUser: async (data: any) => {
+    // Supprimer le champ password si l'utilisateur est créé via OAuth
+    if (!data.password) {
+      delete data.password;
+    }
+    return prisma.user.create({ data });
+  },
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: customPrismaAdapter,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -81,17 +93,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-  },
-  events: {
-    async createUser({ user }) {
-      const extendedUser = user as ExtendedUser;
-      if (!extendedUser.password) {
-        await prisma.user.update({
-          where: { id: extendedUser.id },
-          data: { password: undefined },
-        });
-      }
-    },
   },
   callbacks: {
     async session({ session, token }): Promise<ExtendedSession> {

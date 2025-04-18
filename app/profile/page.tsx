@@ -25,6 +25,7 @@ import { ProfileForm } from '@/components/profile/profile-form';
 import { AddressForm } from '@/components/profile/address-form';
 import { PaymentMethodForm } from '@/components/profile/payment-method-form';
 import { Address, PaymentMethod } from '@/lib/types';
+import Image from 'next/image';
 
 interface Order {
   id: string;
@@ -46,15 +47,7 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
-const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-
-  const handleAddressesChange = (newAddresses: Address[]) => {
-    setAddresses(newAddresses);
-  };
-
-  const handlePaymentMethodsChange = (newMethods: PaymentMethod[]) => {
-    setPaymentMethods(newMethods);
-  };
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
   useEffect(() => {
     async function fetchProfileData() {
@@ -65,7 +58,7 @@ const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
           fetch('/api/user/addresses'),
           fetch('/api/user/payment-methods')
         ]);
-        
+
         const [orders, wishlist, addresses, paymentMethods] = await Promise.all([
           ordersRes.json(),
           wishlistRes.json(),
@@ -186,11 +179,10 @@ const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
                       <TableCell className="font-medium">#{order.id}</TableCell>
                       <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                        <span className={`px-2 py-1 rounded text-xs ${order.status === 'delivered' ? 'bg-green-100 text-green-800' :
                           order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                            'bg-gray-100 text-gray-800'
+                          }`}>
                           {order.status}
                         </span>
                       </TableCell>
@@ -218,7 +210,7 @@ const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
             <CardHeader>
               <CardTitle>Wishlist</CardTitle>
               <CardDescription>
-                Products you've saved for later
+                Products you&apos;ve saved for later
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -227,9 +219,10 @@ const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
                   <Card key={item.id}>
                     <CardContent className="p-4">
                       <div className="aspect-square relative mb-4">
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
+                          fill
                           className="object-cover rounded"
                         />
                       </div>

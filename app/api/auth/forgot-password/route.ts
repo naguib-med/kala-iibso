@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import * as z from 'zod';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const schema = z.object({
   email: z.string().email(),
@@ -38,7 +35,9 @@ export async function POST(req: Request) {
     });
 
     try {
-      // Envoyer l'email directement avec Resend
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
       const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
 
       await resend.emails.send({

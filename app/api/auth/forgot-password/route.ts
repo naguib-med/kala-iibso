@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { sendPasswordResetEmail } from '@/lib/mail';
 import crypto from 'crypto';
 import * as z from 'zod';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const schema = z.object({
   email: z.string().email(),
@@ -35,7 +37,23 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendPasswordResetEmail(email, token);
+    try {
+      // Envoyer l'email directement avec Resend
+      const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: email,
+        subject: 'Reset your password',
+        html: `
+          <h1>Reset your password</h1>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetLink}">Reset Password</a>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Error sending reset email:', emailError);
+    }
 
     return NextResponse.json(
       { message: "If an account exists, we've sent a reset link" },

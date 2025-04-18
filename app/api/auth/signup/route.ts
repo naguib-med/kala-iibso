@@ -1,8 +1,10 @@
 import * as z from 'zod';
 import { hash } from 'bcrypt';
 import { prisma } from '@/lib/prisma';
-import { sendVerificationEmail } from '@/lib/mail';
 import crypto from 'crypto';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const registerSchema = z
   .object({
@@ -57,7 +59,23 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendVerificationEmail(email, token);
+    try {
+      // Envoyer l'email directement avec Resend
+      const confirmLink = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
+
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: email,
+        subject: 'Confirm your email',
+        html: `
+          <h1>Verify your email</h1>
+          <p>Click the link below to confirm your email address:</p>
+          <a href="${confirmLink}">Confirm Email</a>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+    }
 
     return new Response(
       JSON.stringify({

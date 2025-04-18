@@ -26,7 +26,7 @@ model User {
   paymentMethods PaymentMethod[]
   resetTokens    ResetToken[]
   sessions       Session[]
-  wishlist       Wishlist[]      // Renommé de wishlistItems à wishlist
+  wishlist       Wishlist[]
 }
 
 model Account {

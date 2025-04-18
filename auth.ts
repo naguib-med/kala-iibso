@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import type { JWT } from 'next-auth/jwt';
-import type { Session } from 'next-auth';
+import type { Session, User } from 'next-auth';
 import { compare } from 'bcrypt';
 
 import GoogleProvider from 'next-auth/providers/google';
@@ -11,6 +11,10 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 interface ExtendedSession extends Session {
   accessToken?: string;
+}
+
+interface ExtendedUser extends User {
+  password?: string | null;
 }
 
 interface Credentials {
@@ -78,6 +82,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: 'jwt',
   },
+  events: {
+    async createUser({ user }) {
+      const extendedUser = user as ExtendedUser;
+      if (!extendedUser.password) {
+        await prisma.user.update({
+          where: { id: extendedUser.id },
+          data: { password: undefined },
+        });
+      }
+    },
+  },
   callbacks: {
     async session({ session, token }): Promise<ExtendedSession> {
       if (!token.sub) {
@@ -91,10 +106,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: true,
           email: true,
           name: true,
-          image: true
-        }
+          image: true,
+        },
       });
-  
+
       return {
         ...session,
         accessToken: token.accessToken as string,
@@ -103,24 +118,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: token.sub,
           image: user?.image || session.user?.image, // Use latest image from database
           name: user?.name || session.user?.name,
-          email: user?.email || session.user?.email
+          email: user?.email || session.user?.email,
         },
       };
     },
     async jwt({ token, user, trigger, session }) {
-      if (trigger === "update" && session?.user) {
+      if (trigger === 'update' && session?.user) {
         return {
           ...token,
           picture: session.user.image || token.picture,
           name: session.user.name || token.name,
-          email: session.user.email || token.email
+          email: session.user.email || token.email,
         };
       }
-      
+
       if (user) {
         token.sub = user.id;
       }
-      
+
       return token;
     },
   },

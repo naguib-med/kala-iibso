@@ -32,8 +32,8 @@ const CARD_TYPES = {
 
 const getCardType = (number: string) => {
   const cleanNumber = number.replace(/\D/g, '');
-  // Using a different variable name instead of '_' to avoid linting warning
-  return Object.entries(CARD_TYPES).find(([cardName, pattern]) =>
+  // Use destructuring but discard the first element since we only need the key
+  return Object.entries(CARD_TYPES).find(([, pattern]) =>
     pattern.test(cleanNumber)
   )?.[0] || null;
 };

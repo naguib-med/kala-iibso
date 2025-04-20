@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Standards généraux pour le développement Next.js
+type: Always
+---
+
+## Structure de Projet Next.js
+
+- Suivre l'architecture App Router pour les nouveaux projets
+- Utiliser les conventions de fichiers Next.js (page.tsx, layout.tsx, etc.)
+- Organiser les composants par fonctionnalité dans /components
+- Placer les hooks personnalisés dans /hooks
+- Mettre les utilitaires génériques dans /utils ou /lib
+- Placer les types TypeScript communs dans /types
+- Centraliser les constantes dans /constants
+
+## Bonnes Pratiques Next.js
+
+- Utiliser Server Components par défaut, sauf quand des hooks ou des gestionnaires d'événements sont nécessaires
+- Préférer les méthodes de récupération de données côté serveur (getServerSideProps, fetch dans Server Components)
+- Optimiser les images avec le composant Next/Image
+- Utiliser Next/Link pour la navigation interne
+- Implémenter le chargement progressif avec Suspense et loading.tsx
+- Utiliser les Metadata API pour le SEO
+
+## Performances
+
+- Minimiser le JavaScript côté client
+- Utiliser React.memo pour les composants qui rendent fréquemment
+- Implémenter le code splitting avec dynamic imports
+- Précharger les routes importantes avec next/link prefetch
+- Mettre en cache les requêtes quand c'est possible

@@ -48,24 +48,28 @@ export default function ProfilePage() {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     async function fetchProfileData() {
       try {
-        const [ordersRes, wishlistRes, addressesRes, paymentMethodsRes] = await Promise.all([
+        const [profileRes, ordersRes, wishlistRes, addressesRes, paymentMethodsRes] = await Promise.all([
+          fetch('/api/user/profile'),
           fetch('/api/user/orders'),
           fetch('/api/user/wishlist'),
           fetch('/api/user/addresses'),
           fetch('/api/user/payment-methods')
         ]);
 
-        const [orders, wishlist, addresses, paymentMethods] = await Promise.all([
+        const [profile, orders, wishlist, addresses, paymentMethods] = await Promise.all([
+          profileRes.json(),
           ordersRes.json(),
           wishlistRes.json(),
           addressesRes.json(),
           paymentMethodsRes.json()
         ]);
 
+        setProfile(profile);
         setOrders(orders);
         setWishlist(wishlist);
         setAddresses(addresses);

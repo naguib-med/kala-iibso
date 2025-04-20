@@ -1,0 +1,69 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Guide pour gérer les migrations Prisma
+type: Manual
+---
+
+## Processus de Migration Prisma
+
+1. Modifier le schéma dans schema.prisma
+2. Créer une migration avec `npx prisma migrate dev --name nom_de_la_migration`
+3. Examiner le fichier SQL généré dans /prisma/migrations
+4. Tester la migration en local
+5. Appliquer en production avec `npx prisma migrate deploy`
+
+## Bonnes Pratiques pour les Migrations
+
+- Créer des migrations atomiques (un seul changement conceptuel par migration)
+- Ajouter des commentaires descriptifs dans le schéma
+- Éviter de supprimer des colonnes ou des tables sans plan de migration des données
+- Considérer l'impact sur les performances pour les modifications de tables volumineuses
+- Sauvegarder la base de données avant d'appliquer des migrations importantes
+
+## Scénarios Courants
+
+### Ajouter un Nouveau Champ
+
+```prisma
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  // Nouveau champ avec valeur par défaut pour les enregistrements existants
+  isActive  Boolean   @default(true)
+}
+```
+
+## Modifier une Relation
+
+```prisma
+// Avant
+model Post {
+  id        String    @id @default(cuid())
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+}
+
+// Après - Rendre la relation optionnelle
+model Post {
+  id        String    @id @default(cuid())
+  author    User?     @relation(fields: [authorId], references: [id])
+  authorId  String?
+}
+```
+
+## Migration avec Données Personnalisées
+Pour les migrations complexes, créer un script SQL personnalisé:
+
+```sql
+-- Exemple: /prisma/migrations/20231225123456_add_user_role/migration.sql
+-- Ajouter un champ d'énumération et définir des valeurs par défaut en fonction des données existantes
+ALTER TABLE "User" ADD COLUMN "role" TEXT NOT NULL DEFAULT 'USER';
+
+-- Mettre à jour certains utilisateurs comme administrateurs
+UPDATE "User" SET "role" = 'ADMIN' WHERE "email" LIKE '%@company.com';
+```

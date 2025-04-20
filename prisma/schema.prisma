@@ -14,6 +14,7 @@ model User {
   emailVerified  DateTime?
   password       String?
   image          String?
+  role           UserRole        @default(USER)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   bio            String?
@@ -27,28 +28,6 @@ model User {
   resetTokens    ResetToken[]
   sessions       Session[]
   wishlist       Wishlist[]
-  notificationPreferences UserNotificationPreferences?
-  interests      UserInterest[]
-}
-
-model UserNotificationPreferences {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  email     Boolean  @default(true)
-  sms       Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model UserInterest {
-  id        String   @id @default(cuid())
-  userId    String
-  interest  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, interest])
 }
 
 model Account {
@@ -153,6 +132,17 @@ model Order {
   @@index([userEmail])
 }
 
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  slug        String     @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  products    Product[]
+}
+
 model Product {
   id          String     @id @default(cuid())
   name        String
@@ -160,7 +150,8 @@ model Product {
   price       Float
   image       String
   stock       Int        @default(0)
-  category    String?
+  categoryId  String?
+  category    Category?  @relation(fields: [categoryId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   wishlist    Wishlist[]
@@ -184,4 +175,9 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }

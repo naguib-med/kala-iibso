@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
@@ -31,17 +31,45 @@ const profileSchema = z.object({
 export function ProfileForm() {
   const { data: session, update } = useSession();
   const [isUploading, setIsUploading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const data = await response.json();
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    }
+
+    fetchProfile();
+  }, []);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: session?.user?.name || '',
-      email: session?.user?.email || '',
-      phone: '',
-      bio: '',
-      preferredSize: '',
+      name: profile?.name || session?.user?.name || '',
+      email: profile?.email || session?.user?.email || '',
+      phone: profile?.phone || '',
+      bio: profile?.bio || '',
+      preferredSize: profile?.preferredSize || '',
     },
   });
+
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        name: profile.name || session?.user?.name || '',
+        email: profile.email || session?.user?.email || '',
+        phone: profile.phone || '',
+        bio: profile.bio || '',
+        preferredSize: profile.preferredSize || '',
+      });
+    }
+  }, [profile, form, session?.user?.name, session?.user?.email]);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files?.[0]) return;
@@ -50,19 +78,21 @@ export function ProfileForm() {
       setIsUploading(true);
       const file = event.target.files[0];
       const formData = new FormData();
-      formData.append('avatar', file);
+      formData.append('image', file);
+      formData.append('userId', session?.user?.id || '');
 
-      const response = await fetch('/api/user/avatar', {
+      const response = await fetch('/api/upload/avatar', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload avatar');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload avatar');
       }
 
       const { url } = await response.json();
-      
+
       await update({
         user: {
           ...session?.user,
@@ -100,12 +130,13 @@ export function ProfileForm() {
       }
 
       const updatedProfile = await response.json();
-      
+
       await update({
         user: {
           ...session?.user,
           name: updatedProfile.name,
           email: updatedProfile.email,
+          preferredSize: updatedProfile.preferredSize,
         }
       });
 

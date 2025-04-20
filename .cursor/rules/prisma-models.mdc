@@ -1,0 +1,110 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Standards pour le travail avec Prisma ORM
+type: AutoAttached
+globs: "**/{prisma,db}/**/*.{ts,js,prisma}"
+---
+
+## Modèles Prisma
+
+- Utiliser des noms clairs et significatifs pour les modèles et les champs
+- Ajouter des commentaires pour décrire les relations complexes et les contraintes
+- Définir des index pour les champs fréquemment consultés
+- Utiliser des énumérations pour les valeurs prédéfinies
+- Valider les entrées avant d'effectuer des opérations sur la base de données
+
+## Exemple de schéma Prisma:
+
+```prisma
+// Utilisateur du système
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String?
+  image         String?
+  role          UserRole  @default(USER)
+  posts         Post[]
+  comments      Comment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+// Rôles utilisateur disponibles
+enum UserRole {
+  ADMIN
+  EDITOR
+  USER
+}
+
+```
+
+## Bonnes Pratiques pour les Requêtes
+
+- Utiliser select pour limiter les champs récupérés
+- Implémenter la pagination pour les grandes collections (take, skip)
+- Utiliser des transactions pour les opérations atomiques
+- Créer des fonctions d'aide pour les requêtes courantes
+- Centraliser la logique de base de données dans des services dédiés
+
+## Exemple de service Prisma:
+
+```ts
+import { PrismaClient, User } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  return prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      image: true,
+    },
+  });
+}
+
+export async function createUser(data: { name: string; email: string; password: string }): Promise<User> {
+  return prisma.user.create({
+    data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+}
+```
+
+## Migrations
+
+- Vérifier les migrations avant de les appliquer
+- Tester les migrations sur un environnement de développement
+- Sauvegarder la base de données avant d'appliquer des migrations en production
+- Documenter les changements importants dans les migrations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

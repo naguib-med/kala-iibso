@@ -3,11 +3,6 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 
-interface NotificationPreferences {
-  email: boolean;
-  sms: boolean;
-}
-
 interface DeliveryPreferences {
   address: string;
   city: string;
@@ -20,9 +15,7 @@ export async function updateUser(
     phone?: string;
     preferredSize?: string;
     bio?: string;
-    notificationPreferences?: NotificationPreferences;
     deliveryPreferences?: DeliveryPreferences;
-    interests?: string[];
   }
 ) {
   const session = await auth();
@@ -41,22 +34,6 @@ export async function updateUser(
         bio: data.bio,
       },
     });
-
-    // Créer ou mettre à jour les préférences de notification
-    if (data.notificationPreferences) {
-      await prisma.userNotificationPreferences.upsert({
-        where: { userId },
-        update: {
-          email: data.notificationPreferences.email,
-          sms: data.notificationPreferences.sms,
-        },
-        create: {
-          userId,
-          email: data.notificationPreferences.email,
-          sms: data.notificationPreferences.sms,
-        },
-      });
-    }
 
     // Créer ou mettre à jour l'adresse de livraison par défaut
     if (data.deliveryPreferences) {
@@ -81,22 +58,6 @@ export async function updateUser(
           state: 'Djibouti', // Valeur par défaut
           isDefault: true,
         },
-      });
-    }
-
-    // Mettre à jour les centres d'intérêt
-    if (data.interests) {
-      // Supprimer les anciens centres d'intérêt
-      await prisma.userInterest.deleteMany({
-        where: { userId },
-      });
-
-      // Ajouter les nouveaux centres d'intérêt
-      await prisma.userInterest.createMany({
-        data: data.interests.map((interest) => ({
-          userId,
-          interest,
-        })),
       });
     }
 

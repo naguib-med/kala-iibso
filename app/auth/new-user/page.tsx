@@ -24,16 +24,11 @@ export default function NewUserPage() {
             phone: formData.get('phone') as string,
             preferredSize: formData.get('preferredSize') as string,
             bio: formData.get('bio') as string,
-            notificationPreferences: {
-                email: formData.get('emailNotifications') === 'on',
-                sms: formData.get('smsNotifications') === 'on',
-            },
             deliveryPreferences: {
                 address: formData.get('deliveryAddress') as string,
                 city: formData.get('deliveryCity') as string,
                 postalCode: formData.get('postalCode') as string,
             },
-            interests: Array.from(formData.getAll('interests')) as string[],
         };
 
         try {
@@ -154,56 +149,6 @@ export default function NewUserPage() {
                                         placeholder="Code postal"
                                     />
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Préférences de notification */}
-                        <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Préférences de notification</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center">
-                                    <input
-                                        id="emailNotifications"
-                                        name="emailNotifications"
-                                        type="checkbox"
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="emailNotifications" className="ml-2 block text-sm text-gray-900">
-                                        Recevoir des notifications par email
-                                    </label>
-                                </div>
-                                <div className="flex items-center">
-                                    <input
-                                        id="smsNotifications"
-                                        name="smsNotifications"
-                                        type="checkbox"
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="smsNotifications" className="ml-2 block text-sm text-gray-900">
-                                        Recevoir des notifications par SMS
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Centres d'intérêt */}
-                        <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Centres d&apos;intérêt</h3>
-                            <div className="space-y-2">
-                                {['Mode', 'Accessoires', 'Chaussures', 'Beauté', 'Maison', 'Sport'].map((interest) => (
-                                    <div key={interest} className="flex items-center">
-                                        <input
-                                            id={`interest-${interest}`}
-                                            name="interests"
-                                            type="checkbox"
-                                            value={interest}
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                        />
-                                        <label htmlFor={`interest-${interest}`} className="ml-2 block text-sm text-gray-900">
-                                            {interest}
-                                        </label>
-                                    </div>
-                                ))}
                             </div>
                         </div>
                     </div>

@@ -1,78 +1,105 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { cloudinary } from '@/lib/cloudinary';
+import { cloudinary, ResourceType, generatePublicId } from '@/lib/cloudinary';
+import { prisma } from '@/lib/prisma';
 import { Readable } from 'stream';
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
+    if (!session?.user) {
+      console.log('Non autorisé: Pas de session utilisateur');
+      return new NextResponse(JSON.stringify({ error: 'Non autorisé' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+    // Vérifier le type de contenu
+    const contentType = req.headers.get('content-type') || '';
+    console.log('Content-Type:', contentType);
+
+    let userId = '';
+    let image = '';
+
+    // Traiter la requête en fonction du type de contenu
+    if (contentType.includes('application/json')) {
+      // Traitement JSON
+      try {
+        const body = await req.json();
+        console.log('Données JSON reçues:', body);
+        userId = body.userId;
+        image = body.image;
+      } catch (error) {
+        console.error('Erreur de parsing JSON:', error);
+        return new NextResponse(
+          JSON.stringify({ error: 'Format JSON invalide' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (contentType.includes('multipart/form-data')) {
+      // Traitement multipart form-data
+      try {
+        const formData = await req.formData();
+        console.log('FormData reçue, champs:', [...formData.keys()]);
+        userId = formData.get('userId') as string;
+        image = formData.get('image') as string;
+      } catch (error) {
+        console.error('Erreur de parsing FormData:', error);
+        return new NextResponse(
+          JSON.stringify({ error: 'Format FormData invalide' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      console.log('Type de contenu non pris en charge:', contentType);
+      return new NextResponse(
+        JSON.stringify({ error: 'Type de contenu non pris en charge' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const formData = await req.formData();
-    const file = formData.get('avatar') as File;
-    
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
+    console.log('Données extraites:', { userId, image });
+
+    if (!userId || !image) {
+      console.log('Données manquantes:', { userId, image });
+      return new NextResponse(
+        JSON.stringify({ error: 'userId et image requis' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      );
-    }
-
-    // Convert File to buffer for Cloudinary upload
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Upload to Cloudinary
-    const uploadPromise = new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'avatars',
-          public_id: `${session.user.email}-${Date.now()}`,
-          transformation: [
-            { width: 200, height: 200, crop: 'fill' },
-            { quality: 'auto' },
-            { fetch_format: 'auto' }
-          ]
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-
-      // Write buffer to stream
-      Readable.from(buffer).pipe(uploadStream);
+    // Vérifier que l'utilisateur a le droit de modifier cet avatar
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
     });
 
-    const uploadResult = await uploadPromise as { secure_url: string };
-
-    if (!uploadResult?.secure_url) {
-      return NextResponse.json(
-        { error: 'Failed to upload avatar' },
-        { status: 500 }
-      );
+    if (!user || (session.user.id !== userId && user.role !== 'ADMIN')) {
+      console.log('Accès non autorisé:', {
+        userId,
+        sessionUserId: session.user.id,
+        userRole: user?.role,
+      });
+      return new NextResponse(JSON.stringify({ error: 'Non autorisé' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    return NextResponse.json({ url: uploadResult.secure_url });
+    // Mise à jour de l'utilisateur dans la base de données
+    await prisma.user.update({
+      where: { id: userId },
+      data: { image },
+    });
+
+    console.log('Avatar mis à jour avec succès');
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Avatar upload error:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload avatar' },
-      { status: 500 }
+    console.error("Erreur lors de la mise à jour de l'avatar:", error);
+    return new NextResponse(
+      JSON.stringify({ error: 'Erreur interne du serveur' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

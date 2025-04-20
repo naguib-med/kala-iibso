@@ -1,0 +1,75 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Standards pour les composants React dans Next.js
+type: AutoAttached
+globs: "**/components/**/*.{jsx,tsx}"
+---
+
+## Structure des Composants
+
+- Définir les props avec TypeScript interface au début
+- Regrouper les composants connexes dans des sous-dossiers
+- Créer un fichier index.ts pour exporter les composants de chaque dossier
+- Préférer les Client Components pour les composants interactifs (avec "use client" directive)
+- Utiliser Server Components pour les composants statiques ou de récupération de données
+
+## Exemple de Client Component:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+
+interface ButtonProps {
+  label: string;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary';
+}
+
+export function Button({ label, onClick, variant = 'primary' }: ButtonProps) {
+  // Logique du composant
+  return (
+    <button 
+      className={`btn ${variant === 'primary' ? 'btn-primary' : 'btn-secondary'}`}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+}
+
+
+// Exemple de Server Component:
+
+import { getPosts } from '@/lib/api';
+
+interface PostListProps {
+  category?: string;
+}
+
+export async function PostList({ category }: PostListProps) {
+  // Récupération de données côté serveur
+  const posts = await getPosts(category);
+  
+  return (
+    <div>
+      {posts.map(post => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+  );
+}
+
+```
+
+
+## Gestion d'État
+
+- Utiliser useState pour l'état local simple
+- Utiliser useReducer pour l'état complexe
+- Envisager Zustand ou Jotai pour l'état global
+- Séparer la logique d'état dans des hooks personnalisés

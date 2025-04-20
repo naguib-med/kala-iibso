@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import type { JWT } from 'next-auth/jwt';
-import type { Session, User } from 'next-auth';
+import type { Session } from 'next-auth';
 import { compare } from 'bcrypt';
 
 import GoogleProvider from 'next-auth/providers/google';
@@ -13,29 +13,13 @@ interface ExtendedSession extends Session {
   accessToken?: string;
 }
 
-interface ExtendedUser extends User {
-  password?: string | null;
-}
-
 interface Credentials {
   email: string;
   password: string;
 }
 
-// Création d'un adaptateur Prisma personnalisé
-const customPrismaAdapter = {
-  ...PrismaAdapter(prisma),
-  createUser: async (data: any) => {
-    // Supprimer le champ password si l'utilisateur est créé via OAuth
-    if (!data.password) {
-      delete data.password;
-    }
-    return prisma.user.create({ data });
-  },
-};
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: customPrismaAdapter,
+  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,

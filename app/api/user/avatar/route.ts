@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { cloudinary, ResourceType, generatePublicId } from '@/lib/cloudinary';
 import { prisma } from '@/lib/prisma';
-import { Readable } from 'stream';
 
 export async function POST(req: Request) {
   try {

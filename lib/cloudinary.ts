@@ -59,7 +59,6 @@ export const generatePublicId = (
   const timestamp = Date.now();
   // Ne pas inclure le préfixe 'kala-iibso/' car il sera ajouté par l'option folder
   // dans la configuration d'upload
-  const basePath = `${type}`;
   return suffix
     ? `${identifier}-${suffix}-${timestamp}`
     : `${identifier}-${timestamp}`;

@@ -1,92 +1,157 @@
 'use client';
 
-import { useState } from 'react';
-import { ImageUpload } from '@/components/ui/image-upload';
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ImageIcon, Loader2, TrashIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface CategoryImageUploadProps {
     categoryId: string;
-    currentImage?: string;
+    currentImage?: string | null;
     onSuccess?: (url: string) => void;
+    disabled?: boolean;
 }
 
 export function CategoryImageUpload({
     categoryId,
     currentImage,
-    onSuccess
+    onSuccess,
+    disabled = false
 }: CategoryImageUploadProps) {
-    const [image, setImage] = useState<string | null>(currentImage || null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(currentImage || null);
 
-    const handleUpload = async (file: File) => {
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('categoryId', categoryId);
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        if (disabled) return;
 
-        const response = await fetch('/api/upload/category', {
-            method: 'POST',
-            body: formData,
-        });
+        const file = acceptedFiles[0];
+        if (!file) return;
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erreur lors de l\'upload de l\'image');
+        try {
+            setIsUploading(true);
+
+            // Prévisualiser le fichier
+            const objectUrl = URL.createObjectURL(file);
+            setPreview(objectUrl);
+
+            // Créer le FormData
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('categoryId', categoryId);
+
+            // Envoyer l'image
+            const response = await fetch('/api/upload/category', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error uploading image');
+            }
+
+            // Récupérer l'URL
+            const data = await response.json();
+
+            // Mettre à jour le preview avec l'URL finale
+            setPreview(data.url);
+
+            // Appeler le callback
+            onSuccess?.(data.url);
+
+            toast.success('Image uploaded successfully');
+        } catch (error) {
+            console.error('Upload error:', error);
+            toast.error(error instanceof Error ? error.message : 'Error uploading image');
+            setPreview(currentImage || null);
+        } finally {
+            setIsUploading(false);
         }
+    }, [categoryId, currentImage, disabled, onSuccess]);
 
-        const data = await response.json();
-        return data.url;
-    };
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        maxFiles: 1,
+        accept: {
+            'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+        },
+        disabled: isUploading || disabled,
+        maxSize: 5 * 1024 * 1024 // 5MB
+    });
 
-    const handleSuccess = (url: string) => {
-        setImage(url);
-        onSuccess?.(url);
-        toast.success('Image de catégorie mise à jour avec succès');
-    };
+    const handleRemove = useCallback(async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            setPreview(null);
 
-    const handleError = (error: string) => {
-        toast.error(error);
-    };
+            const response = await fetch(`/api/category/${categoryId}/image`, {
+                method: 'DELETE',
+            });
 
-    const handleRemove = () => {
-        setImage(null);
-        onSuccess?.('');
-        toast.success('Image supprimée avec succès');
-    };
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error removing image');
+            }
+
+            onSuccess?.('');
+            toast.success('Image removed successfully');
+        } catch (error) {
+            console.error('Remove error:', error);
+            toast.error(error instanceof Error ? error.message : 'Error removing image');
+        }
+    }, [categoryId, onSuccess]);
 
     return (
-        <div className="space-y-4">
-            <div className="relative">
-                {image ? (
-                    <div className="relative group">
-                        <img
-                            src={image}
-                            alt="Image de catégorie"
-                            className="w-full h-48 object-cover rounded-lg"
+        <div
+            {...getRootProps()}
+            className={cn(
+                'relative border-2 border-dashed rounded-md p-2 h-40 flex flex-col items-center justify-center',
+                isDragActive ? 'border-primary bg-primary/5' : 'border-muted',
+                disabled && 'opacity-50 cursor-not-allowed',
+                isUploading && 'opacity-70'
+            )}
+        >
+            <input {...getInputProps()} />
+
+            {isUploading ? (
+                <div className="flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                    <p className="text-sm text-center">Uploading...</p>
+                </div>
+            ) : preview ? (
+                <div className="relative w-full h-full">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Image
+                            src={preview}
+                            alt="Category image"
+                            fill
+                            className="object-contain rounded-md"
+                            sizes="(max-width: 768px) 100vw, 300px"
                         />
-                        <button
-                            onClick={handleRemove}
-                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
                     </div>
-                ) : (
-                    <ImageUpload
-                        onUpload={handleUpload}
-                        onError={handleError}
-                        onSuccess={handleSuccess}
-                        maxSize={2 * 1024 * 1024} // 2MB
-                        accept={{
-                            'image/*': ['.png', '.jpg', '.jpeg', '.webp']
-                        }}
-                        className="h-48"
-                    />
-                )}
-            </div>
-            <p className="text-sm text-gray-500">
-                Format recommandé : 800x600px
-            </p>
+                    {!disabled && (
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-0 right-0 z-10"
+                            onClick={handleRemove}
+                        >
+                            <TrashIcon className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center">
+                    <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground text-center">
+                        {isDragActive ? 'Drop the image here' : 'Drag & drop or click to select'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP up to 5MB</p>
+                </div>
+            )}
         </div>
     );
 } 

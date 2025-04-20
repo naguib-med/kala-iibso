@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { ImagePlus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface ImageUploadProps {
     onUpload: (file: File) => Promise<string>;
@@ -75,10 +76,12 @@ export function ImageUpload({
                 </div>
             ) : preview ? (
                 <div className="relative w-full h-full">
-                    <img
+                    <Image
                         src={preview}
                         alt="Preview"
-                        className="object-cover w-full h-full rounded-lg"
+                        className="object-cover rounded-lg"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 300px"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
                         <p className="text-white text-sm">Cliquez pour changer</p>
@@ -89,11 +92,11 @@ export function ImageUpload({
                     <ImagePlus className="w-8 h-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
                         {isDragActive
-                            ? 'Déposez l\'image ici'
-                            : 'Glissez-déposez une image ou cliquez pour sélectionner'}
+                            ? "Déposez l'image ici"
+                            : "Glissez-déposez une image ou cliquez pour sélectionner"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        PNG, JPG, GIF jusqu'à {maxSize / 1024 / 1024}MB
+                        PNG, JPG, GIF jusqu&apos;à {maxSize / 1024 / 1024}MB
                     </p>
                 </div>
             )}

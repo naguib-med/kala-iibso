@@ -1,4 +1,4 @@
-import { cloudinary, ResourceType, generatePublicId } from '@/lib/cloudinary';
+import { cloudinary } from '@/lib/cloudinary';
 
 /**
  * Upload une image vers Cloudinary
@@ -29,26 +29,28 @@ export async function uploadImage(
     });
 
     // Uploader vers Cloudinary
-    const result = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            folder: `kala-iibso/${folder}`,
-            public_id: publicId,
-            overwrite: true,
-            resource_type: 'image',
-          },
-          (error, result) => {
-            if (error) {
-              console.error('Erreur Cloudinary:', error);
-              reject(error);
-            } else {
-              resolve(result);
+    const result = await new Promise<{ secure_url: string }>(
+      (resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: `kala-iibso/${folder}`,
+              public_id: publicId,
+              overwrite: true,
+              resource_type: 'image',
+            },
+            (error, result) => {
+              if (error) {
+                console.error('Erreur Cloudinary:', error);
+                reject(error);
+              } else {
+                resolve(result!);
+              }
             }
-          }
-        )
-        .end(buffer);
-    });
+          )
+          .end(buffer);
+      }
+    );
 
     console.log('Upload réussi:', result.secure_url);
     return result.secure_url;

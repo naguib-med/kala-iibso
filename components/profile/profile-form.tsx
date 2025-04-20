@@ -28,10 +28,19 @@ const profileSchema = z.object({
   preferredSize: z.string().optional(),
 });
 
+interface ProfileData {
+  name: string;
+  email: string;
+  phone?: string;
+  bio?: string;
+  preferredSize?: string;
+  image?: string;
+}
+
 export function ProfileForm() {
   const { data: session, update } = useSession();
   const [isUploading, setIsUploading] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
     async function fetchProfile() {

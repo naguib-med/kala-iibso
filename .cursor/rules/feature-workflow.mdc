@@ -1,0 +1,236 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Workflow pour ajouter de nouvelles fonctionnalités
+type: Manual
+---
+
+## Étapes pour Ajouter une Nouvelle Fonctionnalité
+
+1. **Planification**
+   - Définir clairement les exigences
+   - Concevoir l'architecture de la fonctionnalité
+   - Identifier les modèles de données nécessaires
+
+2. **Implémentation Backend**
+   - Mettre à jour le schéma Prisma si nécessaire
+   - Créer des migrations de base de données
+   - Implémenter les services et helpers
+   - Développer les routes API
+
+3. **Implémentation Frontend**
+   - Créer les composants nécessaires
+   - Implémenter l'UI et les interactions
+   - Connecter au backend avec des hooks de données
+
+4. **Tests**
+   - Écrire des tests unitaires
+   - Effectuer des tests d'intégration
+   - Tester manuellement les cas d'utilisation
+
+5. **Déploiement**
+   - Réviser le code
+   - Fusionner dans la branche principale
+   - Déployer et surveiller
+
+## Exemple: Ajout d'une Fonctionnalité de Commentaires
+
+### 1. Mise à jour du Schéma Prisma
+
+```prisma
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  // ... autres champs existants
+  comments  Comment[]
+}
+```
+
+### 2. Création de l'API
+
+```ts
+// app/api/posts/[postId]/comments/route.ts
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
+
+const commentSchema = z.object({
+  content: z.string().min(1).max(500),
+});
+
+export async function GET(
+  request: Request,
+  { params }: { params: { postId: string } }
+) {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { postId: params.postId },
+      include: { author: { select: { name: true, image: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    
+    return NextResponse.json({ comments });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch comments' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: { postId: string } }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    const json = await request.json();
+    const result = commentSchema.safeParse(json);
+    
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: result.error.format() },
+        { status: 400 }
+      );
+    }
+    
+    const comment = await prisma.comment.create({
+      data: {
+        content: result.data.content,
+        postId: params.postId,
+        authorId: session.user.id,
+      },
+      include: {
+        author: { select: { name: true, image: true } },
+      },
+    });
+    
+    return NextResponse.json({ comment }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create comment' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### 3. Création du Composant Frontend
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Comment, User } from '@prisma/client';
+
+type CommentWithAuthor = Comment & {
+  author: Pick<User, 'name' | 'image'>;
+};
+
+interface CommentSectionProps {
+  postId: string;
+  initialComments?: CommentWithAuthor[];
+}
+
+export function CommentSection({ postId, initialComments = [] }: CommentSectionProps) {
+  const [comments, setComments] = useState<CommentWithAuthor[]>(initialComments);
+  const { register, handleSubmit, reset, formState } = useForm<{ content: string }>();
+  
+  const onSubmit = async (data: { content: string }) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) throw new Error('Failed to submit comment');
+      
+      const result = await response.json();
+      setComments([result.comment, ...comments]);
+      reset();
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    }
+  };
+  
+  return (
+    <div className="mt-8">
+      <h3 className="text-xl font-bold mb-4">Comments</h3>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="mb-6">
+        <textarea
+          {...register('content', { required: true })}
+          className="w-full p-3 border rounded-md"
+          rows={3}
+          placeholder="Add a comment..."
+        />
+        <button
+          type="submit"
+          disabled={formState.isSubmitting}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          {formState.isSubmitting ? 'Submitting...' : 'Submit'}
+        </button>
+      </form>
+      
+      <div className="space-y-4">
+        {comments.map((comment) => (
+          <div key={comment.id} className="p-4 border rounded-md">
+            <div className="flex items-center mb-2">
+              {comment.author.image && (
+                <img
+                  src={comment.author.image}
+                  alt={comment.author.name}
+                  className="w-8 h-8 rounded-full mr-2"
+                />
+              )}
+              <span className="font-medium">{comment.author.name}</span>
+              <span className="text-gray-500 text-sm ml-2">
+                {new Date(comment.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            <p>{comment.content}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+Et enfin, voici la règle utilisateur à configurer dans Paramètres > Rules dans Cursor :
+
+### 8. Règle Utilisateur (Paramètres Cursor > Rules)
+
+
+
+
+
+
+
+
+
+

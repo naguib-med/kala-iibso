@@ -1,17 +1,16 @@
-import * as z from "zod";
-import { hash } from "bcrypt";
-import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/mail";
-import crypto from "crypto";
+import * as z from 'zod';
+import { hash } from 'bcrypt';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 const registerSchema = z
   .object({
-    email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    email: z.string().email('Invalid email'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: 'Passwords do not match',
   });
 
 function generateAvatarUrl(email: string) {
@@ -29,7 +28,7 @@ export async function POST(req: Request) {
     });
 
     if (user) {
-      return new Response(JSON.stringify({ error: "User already exists" }), {
+      return new Response(JSON.stringify({ error: 'User already exists' }), {
         status: 400,
       });
     }
@@ -42,11 +41,11 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         image: avatarUrl,
-        name: email.split("@")[0],
+        name: email.split('@')[0],
       },
     });
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
 
     await prisma.verificationToken.create({
@@ -57,12 +56,31 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendVerificationEmail(email, token);
+    try {
+      // Envoyer l'email directement avec Resend
+      const confirmLink = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
+
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: email,
+        subject: 'Confirm your email',
+        html: `
+          <h1>Verify your email</h1>
+          <p>Click the link below to confirm your email address:</p>
+          <a href="${confirmLink}">Confirm Email</a>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+    }
 
     return new Response(
       JSON.stringify({
         message:
-          "User created successfully. Please check your email to verify your account.",
+          'User created successfully. Please check your email to verify your account.',
       }),
       { status: 201 }
     );
@@ -73,7 +91,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
     });
   }

@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { sendPasswordResetEmail } from "@/lib/mail";
-import crypto from "crypto";
-import * as z from "zod";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
+import * as z from 'zod';
 
 const schema = z.object({
   email: z.string().email(),
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
 
     await prisma.resetToken.create({
@@ -35,16 +34,34 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendPasswordResetEmail(email, token);
+    try {
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: email,
+        subject: 'Reset your password',
+        html: `
+          <h1>Reset your password</h1>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetLink}">Reset Password</a>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Error sending reset email:', emailError);
+    }
 
     return NextResponse.json(
       { message: "If an account exists, we've sent a reset link" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in forgot password:", error);
+    console.error('Error in forgot password:', error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: 'Internal server error' },
       { status: 500 }
     );
   }

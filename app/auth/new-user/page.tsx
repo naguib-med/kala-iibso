@@ -188,7 +188,7 @@ export default function NewUserPage() {
 
                         {/* Centres d'intérêt */}
                         <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Centres d'intérêt</h3>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Centres d&apos;intérêt</h3>
                             <div className="space-y-2">
                                 {['Mode', 'Accessoires', 'Chaussures', 'Beauté', 'Maison', 'Sport'].map((interest) => (
                                     <div key={interest} className="flex items-center">

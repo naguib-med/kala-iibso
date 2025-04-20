@@ -2,7 +2,6 @@ import * as z from 'zod';
 import { hash } from 'bcrypt';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import { Resend } from 'resend';
 
 const registerSchema = z
   .object({

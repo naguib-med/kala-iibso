@@ -13,24 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-interface Listing {
-    id: string;
-    title: string;
-    price: number;
-    images: string[];
-    condition: string;
-    category: {
-        name: string;
-    } | null;
-    user: {
-        name: string | null;
-        image: string | null;
-    };
-    location: string | null;
-    views: number;
-    createdAt: string;
-}
+import { Listing, ListingFilters } from '@/types/listings';
+import { useSearchParams } from 'next/navigation';
 
 const getConditionLabel = (condition: string): string => {
     const conditionMap: { [key: string]: string } = {
@@ -57,21 +41,34 @@ const getConditionColor = (condition: string): string => {
 };
 
 export function ListingsGrid() {
+    const searchParams = useSearchParams();
     const [listings, setListings] = useState<Listing[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
-        fetchListings();
+        setPage(1);
+        setListings([]);
+        fetchListings(1);
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (page > 1) {
+            fetchListings(page);
+        }
     }, [page]);
 
-    const fetchListings = async () => {
+    const fetchListings = async (currentPage: number) => {
         try {
-            const response = await fetch(`/api/listings?page=${page}&limit=12`);
+            const params = new URLSearchParams(searchParams);
+            params.set('page', currentPage.toString());
+            params.set('limit', '12');
+
+            const response = await fetch(`/api/listings?${params.toString()}`);
             const data = await response.json();
 
-            if (page === 1) {
+            if (currentPage === 1) {
                 setListings(data.listings);
             } else {
                 setListings(prev => [...prev, ...data.listings]);
@@ -98,6 +95,17 @@ export function ListingsGrid() {
                         </div>
                     </Card>
                 ))}
+            </div>
+        );
+    }
+
+    if (listings.length === 0 && !isLoading) {
+        return (
+            <div className="text-center py-12">
+                <h3 className="text-lg font-semibold mb-2">Aucune annonce trouvée</h3>
+                <p className="text-muted-foreground">
+                    Essayez de modifier vos critères de recherche
+                </p>
             </div>
         );
     }

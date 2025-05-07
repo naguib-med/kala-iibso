@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import * as z from 'zod';
+import { NextRequest } from 'next/server';
+import { ListingFilters } from '@/types/listings';
 
 // Schéma de validation
 const listingSchema = z.object({
@@ -72,99 +74,62 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-
-    // Paramètres de filtrage
-    const categoryId = searchParams.get('categoryId');
-    const condition = searchParams.get('condition');
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const search = searchParams.get('search');
-
-    // Paramètres de pagination
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
-    const skip = (page - 1) * limit;
-
-    // Construction du filtre
-    const where: any = {
-      status: 'PUBLISHED',
+    const searchParams = request.nextUrl.searchParams;
+    const filters: ListingFilters = {
+      page: Number(searchParams.get('page')) || 1,
+      limit: Number(searchParams.get('limit')) || 12,
+      priceMin: Number(searchParams.get('priceMin')) || undefined,
+      priceMax: Number(searchParams.get('priceMax')) || undefined,
+      conditions:
+        (searchParams.get('conditions')?.split(',') as any[]) || undefined,
     };
 
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
+    const where = {
+      AND: [
+        filters.priceMin ? { price: { gte: filters.priceMin } } : {},
+        filters.priceMax ? { price: { lte: filters.priceMax } } : {},
+        filters.conditions?.length
+          ? { condition: { in: filters.conditions } }
+          : {},
+      ],
+    };
 
-    if (condition) {
-      where.condition = condition;
-    }
-
-    if (minPrice) {
-      where.price = {
-        ...where.price,
-        gte: parseFloat(minPrice),
-      };
-    }
-
-    if (maxPrice) {
-      where.price = {
-        ...where.price,
-        lte: parseFloat(maxPrice),
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    // Requête pour obtenir le nombre total
-    const total = await prisma.listing.count({ where });
-
-    // Requête pour obtenir les annonces
-    const listings = await prisma.listing.findMany({
-      where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    const [listings, total] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        include: {
+          category: {
+            select: {
+              name: true,
+            },
+          },
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
           },
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
+        orderBy: {
+          createdAt: 'desc',
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip,
-      take: limit,
-    });
+        skip: (filters.page! - 1) * filters.limit!,
+        take: filters.limit!,
+      }),
+      prisma.listing.count({ where }),
+    ]);
 
-    // Retourner les annonces avec les métadonnées de pagination
     return NextResponse.json({
       listings,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-      },
+      hasMore: total > filters.page! * filters.limit!,
+      total,
     });
   } catch (error) {
-    console.error('Erreur de récupération des annonces:', error);
+    console.error('Erreur lors de la récupération des listings:', error);
     return NextResponse.json(
-      { error: 'Échec de la récupération des annonces' },
+      { error: 'Erreur lors de la récupération des listings' },
       { status: 500 }
     );
   }

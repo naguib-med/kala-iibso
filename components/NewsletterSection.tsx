@@ -83,11 +83,10 @@ export const NewsletterSection = () => {
 
                 {status.type && (
                   <Alert
-                    className={`mt-4 ${
-                      status.type === 'success'
+                    className={`mt-4 ${status.type === 'success'
                         ? 'bg-green-50 text-green-700'
                         : 'bg-red-50 text-red-700'
-                    }`}
+                      }`}
                   >
                     <AlertDescription>{status.message}</AlertDescription>
                   </Alert>

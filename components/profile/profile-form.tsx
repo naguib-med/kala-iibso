@@ -101,7 +101,7 @@ export function ProfileForm() {
       }
 
       const { url } = await response.json();
-
+      
       await update({
         user: {
           ...session?.user,
@@ -139,7 +139,7 @@ export function ProfileForm() {
       }
 
       const updatedProfile = await response.json();
-
+      
       await update({
         user: {
           ...session?.user,

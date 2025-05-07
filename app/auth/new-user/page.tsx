@@ -47,13 +47,13 @@ export default function NewUserPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    <h2 className="mt-6 text-center text-3xl font-extrabold ">
                         Bienvenue sur Kala Iibso!
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <p className="mt-2 text-center text-sm">
                         Complétez votre profil pour une meilleure expérience
                     </p>
                 </div>
@@ -61,10 +61,10 @@ export default function NewUserPage() {
                     <div className="rounded-md shadow-sm -space-y-px">
                         {/* Informations de base */}
                         <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Informations de base</h3>
+                            <h3 className="text-lg font-medium mb-2">Informations de base</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="phone" className="block text-sm font-medium">
                                         Numéro de téléphone
                                     </label>
                                     <input
@@ -72,18 +72,18 @@ export default function NewUserPage() {
                                         name="phone"
                                         type="tel"
                                         required
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1  px-2 py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                         placeholder="Numéro de téléphone"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="preferredSize" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="preferredSize" className="block text-sm font-medium">
                                         Taille préférée
                                     </label>
                                     <select
                                         id="preferredSize"
                                         name="preferredSize"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-2 py-2"
                                     >
                                         <option value="">Sélectionnez votre taille</option>
                                         <option value="XS">XS</option>
@@ -95,7 +95,7 @@ export default function NewUserPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="bio" className="block text-sm font-medium">
                                         À propos de vous
                                     </label>
                                     <textarea
@@ -111,41 +111,41 @@ export default function NewUserPage() {
 
                         {/* Préférences de livraison */}
                         <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Adresse de livraison par défaut</h3>
+                            <h3 className="text-lg font-medium mb-2">Adresse de livraison par défaut</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="deliveryAddress" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="deliveryAddress" className="block text-sm font-medium">
                                         Adresse
                                     </label>
                                     <input
                                         id="deliveryAddress"
                                         name="deliveryAddress"
                                         type="text"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-2 py-2"
                                         placeholder="Votre adresse"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="deliveryCity" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="deliveryCity" className="block text-sm font-medium">
                                         Ville
                                     </label>
                                     <input
                                         id="deliveryCity"
                                         name="deliveryCity"
                                         type="text"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-2 py-2"
                                         placeholder="Votre ville"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="postalCode" className="block text-sm font-medium">
                                         Code postal
                                     </label>
                                     <input
                                         id="postalCode"
                                         name="postalCode"
                                         type="text"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-2 py-2"
                                         placeholder="Code postal"
                                     />
                                 </div>

@@ -26,7 +26,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
-  // const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,39 +37,27 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch wishlist count
+  useEffect(() => {
+    const fetchWishlistCount = async () => {
+      if (session?.user) {
+        try {
+          const response = await fetch('/api/wishlist');
+          if (response.ok) {
+            const data = await response.json();
+            setWishlistCount(data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching wishlist count:', error);
+        }
+      }
+    };
+
+    fetchWishlistCount();
+  }, [session]);
+
   return (
     <div className="fixed inset-x-0 top-0 z-50">
-      {/* Animated Announcement Banner */}
-      {/* <AnimatePresence>
-        {showAnnouncement && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="relative bg-gradient-to-r from-primary via-primary/90 to-primary"
-          >
-            <div className="container px-4 py-2">
-              <div className="flex items-center justify-center gap-2 text-center text-sm text-white">
-                <Sparkles className="h-4 w-4 animate-pulse" />
-                <span className="font-medium">Nouvelle Version !</span>
-                <span className="hidden sm:inline">
-                  Découvrez notre nouvelle interface et nos nouvelles
-                  fonctionnalités
-                </span>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAnnouncement(false)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-white/20"
-                >
-                  ×
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence> */}
-
       {/* Main Navbar with Glassmorphism */}
       <motion.header
         initial={{ y: -100 }}
@@ -145,9 +133,11 @@ export function Navbar() {
                     whileTap={{ scale: 0.95 }}
                     className="hidden lg:block"
                   >
-                    <Button className="group gap-2 bg-gradient-to-r from-primary to-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
-                      <PlusCircle className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
-                      Publier une annonce
+                    <Button asChild className="group gap-2 bg-gradient-to-r from-primary to-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
+                      <Link href="/listings/new">
+                        <PlusCircle className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
+                        Publier une annonce
+                      </Link>
                     </Button>
                   </motion.div>
 
@@ -162,11 +152,16 @@ export function Navbar() {
                         variant="ghost"
                         size="icon"
                         className="relative group"
+                        asChild
                       >
-                        <Heart className="h-5 w-5 transition-colors duration-300 group-hover:text-red-500" />
-                        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                          2
-                        </span>
+                        <Link href="/wishlist">
+                          <Heart className="h-5 w-5 transition-colors duration-300 group-hover:text-red-500" />
+                          {wishlistCount > 0 && (
+                            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                              {wishlistCount}
+                            </span>
+                          )}
+                        </Link>
                       </Button>
                     </motion.div>
                     <CartSheet />
@@ -231,9 +226,12 @@ export function Navbar() {
                     variant="ghost"
                     size="sm"
                     className="group flex gap-2 text-muted-foreground transition-colors duration-300 hover:text-primary"
+                    asChild
                   >
-                    <Heart className="h-4 w-4 transition-colors duration-300 group-hover:text-red-500" />
-                    Mes favoris
+                    <Link href="/wishlist">
+                      <Heart className="h-4 w-4 transition-colors duration-300 group-hover:text-red-500" />
+                      Mes favoris
+                    </Link>
                   </Button>
                 </motion.div>
               )}

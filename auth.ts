@@ -11,6 +11,12 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 interface ExtendedSession extends Session {
   accessToken?: string;
+  user: {
+    id: string;
+    role: string;
+    phone?: string | null;
+    bio?: string | null;
+  } & Session['user'];
 }
 
 interface Credentials {
@@ -46,6 +52,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            password: true,
+            emailVerified: true,
+            role: true,
+            phone: true,
+            bio: true,
+          },
         });
 
         console.log('found user', user);
@@ -55,16 +72,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (!user.emailVerified) {
-          return null; // Email non vérifié
+          return null;
         }
 
         const isPasswordValid = await compare(password, user.password);
 
         if (!isPasswordValid) {
-          return null; // Mot de passe incorrect
+          return null;
         }
 
-        return user;
+        const { password: _, ...userWithoutPassword } = user;
+        return userWithoutPassword;
       },
     }),
   ],
@@ -92,6 +110,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: true,
           name: true,
           image: true,
+          role: true,
+          phone: true,
+          bio: true,
         },
       });
 
@@ -101,9 +122,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         user: {
           ...session.user,
           id: token.sub,
-          image: user?.image || session.user?.image, // Use latest image from database
+          image: user?.image || session.user?.image,
           name: user?.name || session.user?.name,
           email: user?.email || session.user?.email,
+          role: user?.role || 'USER',
+          phone: user?.phone || undefined,
+          bio: user?.bio || undefined,
         },
       };
     },
@@ -114,11 +138,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           picture: session.user.image || token.picture,
           name: session.user.name || token.name,
           email: session.user.email || token.email,
+          role: session.user.role || token.role,
+          phone: session.user.phone || token.phone,
+          bio: session.user.bio || token.bio,
         };
       }
 
       if (user) {
         token.sub = user.id;
+        token.role = user.role;
+        token.phone = user.phone;
+        token.bio = user.bio;
       }
 
       return token;

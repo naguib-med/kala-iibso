@@ -28,6 +28,8 @@ model User {
   resetTokens    ResetToken[]
   sessions       Session[]
   wishlist       Wishlist[]
+  listings       Listing[]
+  cartItems      CartItem[]
 }
 
 model Account {
@@ -135,39 +137,30 @@ model Order {
 model Category {
   id          String    @id @default(cuid())
   name        String
-  description String?
-  image       String?
   slug        String    @unique
+  description String?
+  parentId    String?
+  parent      Category? @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryToCategory")
+  listings    Listing[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  products    Product[]
-}
 
-model Product {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  image       String
-  stock       Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  categoryId  String?
-  category    Category?  @relation(fields: [categoryId], references: [id])
-  wishlist    Wishlist[]
+  @@index([parentId])
 }
 
 model Wishlist {
   id        String   @id @default(cuid())
-  productId String
+  listingId String
   userEmail String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
+  listing   Listing  @relation(fields: [listingId], references: [id])
   user      User     @relation(fields: [userEmail], references: [email])
 
   @@index([userEmail])
-  @@index([productId])
+  @@index([listingId])
+  @@unique([userEmail, listingId]) 
 }
 
 model Banner {
@@ -182,6 +175,44 @@ model Banner {
   updatedAt   DateTime @updatedAt
 }
 
+model Listing {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  condition   ItemCondition @default(GOOD)
+  images      String[]
+  status      ListingStatus @default(DRAFT)
+  userId      String
+  categoryId  String?
+  location    String?
+  views       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  wishlist    Wishlist[]
+  cartItems   CartItem[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model CartItem {
+    id        String   @id @default(cuid())
+    quantity  Int      @default(1)
+    userEmail String
+    listingId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    user      User     @relation(fields: [userEmail], references: [email])
+    listing   Listing  @relation(fields: [listingId], references: [id])
+
+    @@index([userEmail])
+    @@index([listingId])
+}
+
 enum OrderStatus {
   PROCESSING
   SHIPPED
@@ -192,4 +223,19 @@ enum OrderStatus {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  SOLD
+  ARCHIVED
 }

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -12,113 +11,125 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { ShoppingCart, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
+import { ShoppingCart, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
+import { formatPrice } from '@/lib/format';
+import Link from 'next/link';
+
+interface CartItem {
+  id: string;
+  quantity: number;
+  listing: {
+    id: string;
+    title: string;
+    price: number;
+    images: string[];
+  };
+}
 
 export function CartSheet() {
   const router = useRouter();
-  const cart = useCart();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleCheckout = async () => {
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const fetchCart = async () => {
     try {
-      setIsCheckingOut(true);
-      // Here you would typically:
-      // 1. Create an order
-      // 2. Redirect to payment
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push('/checkout');
+      const response = await fetch('/api/cart');
+      if (!response.ok) throw new Error('Erreur lors de la récupération du panier');
+      const data = await response.json();
+      setCartItems(data);
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: `"Failed to proceed to checkout. Please try again."`,
-        });
-      }
+      console.error('Erreur:', error);
     } finally {
-      setIsCheckingOut(false);
+      setIsLoading(false);
     }
   };
+
+  const removeItem = async (listingId: string) => {
+    try {
+      const response = await fetch(`/api/cart?listingId=${listingId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de la suppression');
+      setCartItems(cartItems.filter(item => item.listing.id !== listingId));
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
+  };
+
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.listing.price * item.quantity,
+    0
+  );
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <ShoppingCart className="h-4 w-4" />
-          {cart.items.length > 0 && (
-            <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-              {cart.items.length}
+        <Button variant="ghost" size="icon" className="relative">
+          <ShoppingCart className="h-5 w-5" />
+          {cartItems.length > 0 && (
+            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-xs text-white flex items-center justify-center">
+              {cartItems.length}
             </span>
           )}
         </Button>
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle>Shopping Cart</SheetTitle>
+          <SheetTitle>Mon panier</SheetTitle>
         </SheetHeader>
 
-        {cart.items.length === 0 ? (
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-center">
             <div className="space-y-2">
               <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h3 className="font-medium">Your cart is empty</h3>
+              <h3 className="font-medium">Votre panier est vide</h3>
               <p className="text-sm text-muted-foreground">
-                Start shopping to add items to your cart
+                Commencez à explorer les annonces
               </p>
+              <Button asChild>
+                <Link href="/listings">Explorer</Link>
+              </Button>
             </div>
           </div>
         ) : (
           <>
             <ScrollArea className="flex-1 -mx-6 px-6">
               <div className="space-y-4">
-                {cart.items.map((item) => (
+                {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="relative aspect-square h-20 w-20 rounded-lg overflow-hidden">
+                    <Link href={`/listings/${item.listing.id}`} className="relative aspect-square h-20 w-20 rounded-lg overflow-hidden">
                       <Image
-                        src={item.image}
-                        alt={item.title}
+                        src={item.listing.images[0] || '/placeholder.png'}
+                        alt={item.listing.title}
                         fill
                         className="object-cover"
                       />
-                    </div>
+                    </Link>
                     <div className="flex flex-1 flex-col">
-                      <h4 className="font-medium">{item.title}</h4>
+                      <Link href={`/listings/${item.listing.id}`}>
+                        <h4 className="font-medium hover:text-primary">{item.listing.title}</h4>
+                      </Link>
                       <p className="text-sm text-muted-foreground mb-2">
-                        ${item.price}
+                        {formatPrice(item.listing.price)}
                       </p>
-                      <div className="flex items-center gap-2 mt-auto">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() =>
-                            cart.updateQuantity(
-                              item.id,
-                              Math.max(0, item.quantity - 1)
-                            )
-                          }
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() =>
-                            cart.updateQuantity(item.id, item.quantity + 1)
-                          }
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className="text-sm">Quantité: {item.quantity}</span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 ml-auto"
-                          onClick={() => cart.removeItem(item.id)}
+                          className="h-8 w-8"
+                          onClick={() => removeItem(item.listing.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -131,28 +142,15 @@ export function CartSheet() {
 
             <div className="space-y-4 pt-6">
               <Separator />
-              <div className="space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="font-medium">Total</span>
-                  <span className="font-bold">${cart.total.toFixed(2)}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Shipping and taxes calculated at checkout
-                </p>
+              <div className="flex justify-between">
+                <span className="font-medium">Total</span>
+                <span className="font-bold">{formatPrice(total)}</span>
               </div>
               <Button
                 className="w-full"
-                onClick={handleCheckout}
-                disabled={isCheckingOut}
+                asChild
               >
-                {isCheckingOut ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Checkout'
-                )}
+                <Link href="/cart">Voir le panier</Link>
               </Button>
             </div>
           </>
